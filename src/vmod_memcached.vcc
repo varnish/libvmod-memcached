@@ -1,7 +1,7 @@
 Module example
 Init init_function
-Function NONE config(STRING)
-Function NONE set(STRING, STRING)
+Function VOID config(STRING)
+Function VOID set(STRING, STRING)
 Function STRING get(STRING)
 Function STRING incr(STRING)
 Function STRING decr(STRING)
