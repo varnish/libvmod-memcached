@@ -1,54 +1,70 @@
-============
-vmod_example
-============
+==============
+vmod_memcached
+==============
 
-----------------------
-Varnish Example Module
-----------------------
+------------------------
+Varnish Memcached Module
+------------------------
 
-:Author: Martin Blix Grydeland
-:Date: 2011-05-26
-:Version: 1.0
+:Author: Aaron Stone
+:Date: 2012-01-25
+:Version: 0.1
 :Manual section: 3
 
 SYNOPSIS
 ========
 
-import example;
+import memcached;
 
 DESCRIPTION
 ===========
 
-Example Varnish vmod demonstrating how to write an out-of-tree Varnish vmod.
+Varnish vmod using libmemcached to access memcached servers
 
-Implements the traditional Hello World as a vmod.
+Implements the basic memcached operations of get, set, incr, decr.
 
 FUNCTIONS
 =========
 
-hello
------
+config
+------
 
 Prototype
         ::
 
-                hello(STRING S)
+                config(STRING S)
 Return value
-	STRING
+	NONE
 Description
-	Returns "Hello, " prepended to S
+	Configured libmemcached client according to http://docs.libmemcached.org/libmemcached_configuration.html
 Example
         ::
 
-                set resp.http.hello = example.hello("World");
+                memcached.config("--SERVER=localhost");
+
+get
+---
+
+Prototype
+        ::
+
+                STRING get(STRING S)
+Return value
+	STRING V
+Description
+	Retrieve key S from memcached, returns a string.
+Example
+        ::
+
+                memcached.config("--SERVER=localhost");
+
+                set resp.http.hello = memcached.get("your_memcached_key");
+
 
 INSTALLATION
 ============
 
-This is an example skeleton for developing out-of-tree Varnish
-vmods. It implements the "Hello, World!" as a vmod callback. Not
-particularly useful in good hello world tradition, but demonstrates how
-to get the glue around a vmod working.
+TODO: optionally specify the path to libmemcached.
 
 The source tree is based on autotools to configure the building, and
 does also have the necessary bits in place to do functional unit tests
@@ -72,20 +88,14 @@ Make targets:
 * make install - installs your vmod in `VMODDIR`
 * make check - runs the unit tests in ``src/tests/*.vtc``
 
-In your VCL you could then use this vmod along the following lines::
-        
-        import example;
-
-        sub vcl_deliver {
-                # This sets resp.http.hello to "Hello, World"
-                set resp.http.hello = example.hello("World");
-        }
-
 HISTORY
 =======
 
-This manual page was released as part of the libvmod-example package,
-demonstrating how to create an out-of-tree Varnish vmod.
+The first revision of this document sketches out a rough plan for approaching a
+general purpose memcached client module for Varnish. More features are sure to
+be added as we go along.
+
+This manual page is based on the template man page from libvmod-example.
 
 COPYRIGHT
 =========
@@ -93,4 +103,5 @@ COPYRIGHT
 This document is licensed under the same license as the
 libvmod-example project. See LICENSE for details.
 
+* Copyright (c) 2012 Aaron Stone
 * Copyright (c) 2011 Varnish Software
