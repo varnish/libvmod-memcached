@@ -1,4 +1,4 @@
-varnishtest "Test example vmod"
+varnishtest "Test memcached vmod"
 
 server s1 {
        rxreq
@@ -6,10 +6,15 @@ server s1 {
 } -start
 
 varnish v1 -vcl+backend {
-	import example from "${vmod_topbuild}/src/.libs/libvmod_example.so";
+	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
+
+	sub vcl_init {
+		memcached.config("--SERVER=localhost");
+	}
 
 	sub vcl_deliver {
-		set resp.http.hello = example.hello("World");
+		memcached.set("test01", "Hello, World", 0, 0);
+		set resp.http.hello = memcached.get("test01");
 	}
 } -start
 

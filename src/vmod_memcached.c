@@ -9,64 +9,56 @@
 int
 init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
 {
+	priv->free = (vmod_priv_free_f *)memcached_free;
+
 	return (0);
 }
 
 void
-vmod_memcached_config(struct sess *sp, const char *config)
+vmod_config(struct sess *sp, struct vmod_priv *priv, const char *config)
 {
-	// TODO:
-	// memcached_st *
-	// memcached(const char *string,
-	//           size_t string_length);
+	priv->priv = memcached(config, strlen(config));
 }
 
 void
-vmod_memcached_set(struct sess *sp, const char *key, const char *value)
+vmod_set(struct sess *sp, struct vmod_priv *priv, const char *key, const char *value, int expiration, int flags)
 {
-	// TODO:
-	// memcached_return_t
-	// memcached_set (memcached_st *ptr,
-	//                const char *key,
-	//                size_t key_length,
-	//                const char *value,
-	//                size_t value_length,
-	//                time_t expiration,
-	//                uint32_t flags);
+	memcached_return_t rc;
+
+	rc = memcached_set(priv->priv, key, strlen(key), value, strlen(value), expiration, flags);
 }
 
 const char *
-vmod_memcached_get(struct sess *sp, const char *key)
+vmod_get(struct sess *sp, struct vmod_priv *priv, const char *key)
 {
-	// TODO:
-	// char *
-	// memcached_get(memcached_st *ptr,
-	//               const char *key,
-	//               size_t key_length,
-	//               size_t *value_length,
-	//               uint32_t *flags,
-	//               memcached_return_t *error);
+	size_t len;
+	uint32_t flags;
+	memcached_return_t rc;
+
+	char *value = memcached_get(priv->priv, key, strlen(key), &len, &flags, &rc);
+
+	return value;
 }
 
-const char *
-vmod_memcached_incr(struct sess *sp, const char *key)
+int
+vmod_incr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
 {
-	// TODO:
-	// memcached_return_t
-	// memcached_increment (memcached_st *ptr,
-	//                      const char *key, size_t key_length,
-	//                      unsigned int offset,
-	//                      uint64_t *value);
+	uint64_t value;
+	memcached_return_t rc;
+
+	rc = memcached_increment(priv->priv, key, strlen(key), offset, &value);
+
+	return (int)value;
 }
 
-const char *
-vmod_memcached_decr(struct sess *sp, const char *key)
+int
+vmod_decr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
 {
-	// TODO:
-	// memcached_return_t
-	// memcached_decrement (memcached_st *ptr,
-	//                      const char *key, size_t key_length,
-	//                      unsigned int offset,
-	//                      uint64_t *value);
+	uint64_t value;
+	memcached_return_t rc;
+
+	rc = memcached_decrement(priv->priv, key, strlen(key), offset, &value);
+
+	return (int)value;
 }
 
