@@ -1,7 +1,7 @@
+libvmod-memcached, a MemcacheD client for Varnish:
+Copyright (c) 2012 Aaron Stone
+
+File layout and configuration based on libvmod-example:
 Copyright (c) 2011 Varnish Software AS
-...
-See LICENSE for details.
 
-Your free to use and distribute this under terms in the
-LICENSE. Please add your relevant copyright statements.
-
+See LICENSE file for copyright terms.
