@@ -1,8 +1,8 @@
 AC_PREREQ(2.59)
-AC_COPYRIGHT([Copyright (c) 2011 Varnish Software AS])
-AC_INIT([libvmod-example], [trunk])
+AC_COPYRIGHT([Copyright (c) 2012 Aaron Stone])
+AC_INIT([libvmod-memcached], [trunk])
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR(src/vmod_example.vcc)
+AC_CONFIG_SRCDIR(src/vmod_memcached.vcc)
 AM_CONFIG_HEADER(config.h)
 
 AC_CANONICAL_SYSTEM
@@ -23,7 +23,7 @@ AC_PROG_LIBTOOL
 AC_PROG_MAKE_SET
 
 # Check for rst utilities
-AC_CHECK_PROGS(RST2MAN, [rst2man rst2man.py], "no")
+AC_CHECK_PROGS(RST2MAN, [rst2man rst2man.py rst2man.py-2.6 rst2man.py-2.7], "no")
 if test "x$RST2MAN" = "xno"; then
 	AC_MSG_WARN([rst2man not found - not building man pages])
 fi
