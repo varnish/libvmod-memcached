@@ -1,9 +1,9 @@
-INCLUDES = -I$(VARNISHSRC)/include -I$(VARNISHSRC)
+INCLUDES = -I$(VARNISHSRC)/include -I$(VARNISHSRC) $(LIBMEMCACHED_CFLAGS)
 
 vmoddir = $(VMODDIR)
 vmod_LTLIBRARIES = libvmod_memcached.la
 
-libvmod_memcached_la_LDFLAGS = -module -export-dynamic -avoid-version
+libvmod_memcached_la_LDFLAGS = -module -export-dynamic -avoid-version $(LIBMEMCACHED_LIBS)
 
 libvmod_memcached_la_SOURCES = \
 	vcc_if.c \

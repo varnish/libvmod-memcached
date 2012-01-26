@@ -23,7 +23,7 @@ AC_PROG_LIBTOOL
 AC_PROG_MAKE_SET
 
 # Check for rst utilities
-AC_CHECK_PROGS(RST2MAN, [rst2man rst2man.py rst2man.py-2.6 rst2man.py-2.7], "no")
+AC_CHECK_PROGS(RST2MAN, [rst2man rst2man.py rst2man-2.6.py rst2man-2.7.py], "no")
 if test "x$RST2MAN" = "xno"; then
 	AC_MSG_WARN([rst2man not found - not building man pages])
 fi
@@ -64,6 +64,9 @@ if test "x$VMODDIR" = x; then
 		AC_MSG_FAILURE([Can't determine vmod installation directory])
 	fi
 fi
+
+# Look for libmemcached using pkg-config
+PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached])
 
 AC_CONFIG_FILES([
 	Makefile
