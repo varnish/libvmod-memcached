@@ -100,7 +100,7 @@ vmod_get(struct sess *sp, struct vmod_priv *priv, const char *key)
 int
 vmod_incr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
 {
-	uint64_t value;
+	uint64_t value = 0;
 	memcached_return rc;
 	memcached_st *mc = get_memcached(priv->priv);
 	if (!mc) return 0;
@@ -113,7 +113,7 @@ vmod_incr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
 int
 vmod_decr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
 {
-	uint64_t value;
+	uint64_t value = 0;
 	memcached_return rc;
 	memcached_st *mc = get_memcached(priv->priv);
 	if (!mc) return 0;
