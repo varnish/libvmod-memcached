@@ -165,6 +165,12 @@ Make targets:
 * make install - installs your vmod in `VMODDIR`
 * make check - runs the unit tests in ``src/tests/*.vtc``
 
+SEE ALSO
+========
+
+* http://memcached.org/
+* http://libmemcached.org/
+
 HISTORY
 =======
 
