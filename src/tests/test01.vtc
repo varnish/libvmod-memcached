@@ -9,7 +9,7 @@ varnish v1 -vcl+backend {
 	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
 
 	sub vcl_init {
-		memcached.config("--SERVER=localhost");
+		memcached.servers("localhost");
 	}
 
 	sub vcl_deliver {
