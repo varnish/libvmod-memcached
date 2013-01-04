@@ -93,8 +93,12 @@ vmod_get(struct sess *sp, struct vmod_priv *priv, const char *key)
 	if (!mc) return NULL;
 
 	char *value = memcached_get(mc, key, strlen(key), &len, &flags, &rc);
+	if (!value) return NULL;
 
-	return value;
+	char *ws_buf = WS_Dup(sp->ws, value);
+	free(value);
+
+	return ws_buf;
 }
 
 int
