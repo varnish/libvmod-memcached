@@ -1,0 +1,29 @@
+varnishtest "Test memcached vmod"
+
+server s1 {
+       rxreq
+       txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
+
+	sub vcl_init {
+		memcached.servers("--SERVER=localhost");
+	}
+
+	sub vcl_deliver {
+		memcached.set("test02", "1", 0, 0);
+		set resp.http.high = memcached.incr("test02", 3);
+		set resp.http.low = memcached.decr("test02", 2);
+	}
+} -start
+
+client c1 {
+	txreq -url "/"
+	rxresp
+	expect resp.http.high == "4"
+	expect resp.http.low == "2"
+}
+
+client c1 -run
