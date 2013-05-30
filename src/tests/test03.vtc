@@ -1,0 +1,27 @@
+varnishtest "Test memcached vmod"
+
+server s1 {
+       rxreq
+       txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
+
+	sub vcl_init {
+		memcached.servers("--SERVER=localhost");
+	}
+
+	sub vcl_deliver {
+		memcached.set("test01", "Hello, World", 0, 0);
+		set resp.http.hello = memcached.get("test01");
+	}
+} -start
+
+client c1 {
+	txreq -url "/"
+	rxresp
+	expect resp.http.hello == "Hello, World"
+}
+
+client c1 -run
