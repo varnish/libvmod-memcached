@@ -7,7 +7,7 @@ Group: System Environment/Daemons
 Source0: libvmod-memcached.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: varnish > 3.0
-BuildRequires: make, python-docutils, memcached-devel
+BuildRequires: make, python-docutils, libmemcached-devel
 
 %description
 Memcached VMOD
