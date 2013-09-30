@@ -17,4 +17,4 @@ cleanup() {
 
 trap cleanup EXIT
 
-sh -c "@$"
+sh -c "$@"
