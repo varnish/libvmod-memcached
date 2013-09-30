@@ -24,7 +24,6 @@ client c1 {
 	txreq -url "/"
 	rxresp
 	expect resp.http.hello == "Hello, World"
-}
+} -run
 
-client c1 -run
 shell "kill $(cat ${tmpdir}/memcached.pid)"

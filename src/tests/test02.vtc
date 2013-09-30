@@ -26,7 +26,6 @@ client c1 {
 	rxresp
 	expect resp.http.high == "4"
 	expect resp.http.low == "2"
-}
+} -run
 
-client c1 -run
 shell "kill $(cat ${tmpdir}/memcached.pid)"

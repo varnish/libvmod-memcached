@@ -15,6 +15,4 @@ client c1 {
 	txreq -url "/"
 	rxresp
 	expect resp.http.hello == "Hello, World"
-}
-
-client c1 -run
+} -run
