@@ -3,6 +3,9 @@
 # These tests require a running memcached.  We assume there is none
 # running already.
 
+set -e
+set -x
+
 PIDFILE="$(mktemp)"
 
 memcached -u nobody -d -P "$PIDFILE"
@@ -12,6 +15,6 @@ cleanup() {
     rm -f "$PIDFILE"
 }
 
-trap '' cleanup
+trap EXIT cleanup
 
-"@$"
+sh -c "@$"
