@@ -1,0 +1,17 @@
+#! /bin/sh
+
+# These tests require a running memcached.  We assume there is none
+# running already.
+
+PIDFILE="$(mktemp)"
+
+memcached -u nobody -d -P "$PIDFILE"
+
+cleanup() {
+    kill $(cat "$PIDFILE")
+    rm -f "$PIDFILE"
+}
+
+trap '' cleanup
+
+"@$"
