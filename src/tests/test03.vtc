@@ -5,6 +5,8 @@ server s1 {
        txresp
 } -start
 
+shell "memcached -u nobody -d -P ${tmpdir}/memcached.pid"
+
 varnish v1 -vcl+backend {
 	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
 
@@ -25,3 +27,4 @@ client c1 {
 }
 
 client c1 -run
+shell "kill $(cat ${tmpdir}/memcached.pid)"
