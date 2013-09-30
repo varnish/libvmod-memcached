@@ -27,3 +27,4 @@ client c1 {
 } -run
 
 shell "kill $(cat ${tmpdir}/memcached.pid)"
+delay 1
