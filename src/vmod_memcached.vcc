@@ -1,7 +1,7 @@
-Module memcached
-Init init_function
-Function VOID servers(PRIV_VCL, STRING)
-Function VOID set(PRIV_VCL, STRING, STRING, INT, INT)
-Function STRING get(PRIV_VCL, STRING)
-Function INT incr(PRIV_VCL, STRING, INT)
-Function INT decr(PRIV_VCL, STRING, INT)
+$Module memcached 3
+$Init init_function
+$Function VOID servers(PRIV_VCL, STRING)
+$Function VOID set(PRIV_VCL, STRING, STRING, INT, INT)
+$Function STRING get(PRIV_VCL, STRING)
+$Function INT incr(PRIV_VCL, STRING, INT)
+$Function INT decr(PRIV_VCL, STRING, INT)

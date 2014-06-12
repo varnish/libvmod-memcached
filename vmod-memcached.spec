@@ -6,7 +6,7 @@ License: BSD
 Group: System Environment/Daemons
 Source0: libvmod-memcached.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires: varnish > 3.0
+Requires: varnish >= 4.0
 BuildRequires: make, python-docutils, libmemcached-devel, memcached
 
 %description
@@ -16,9 +16,7 @@ Memcached VMOD
 %setup -n libvmod-memcached
 
 %build
-# this assumes that VARNISHSRC is defined on the rpmbuild command line, like this:
-# rpmbuild -bb --define 'VARNISHSRC /home/user/rpmbuild/BUILD/varnish-3.0.3' redhat/*spec
-./configure VARNISHSRC=%{VARNISHSRC} VMODDIR="$(PKG_CONFIG_PATH=%{VARNISHSRC} pkg-config --variable=vmoddir varnishapi)" --prefix=/usr/ --docdir='${datarootdir}/doc/%{name}'
+./configure --prefix=/usr/ --docdir='${datarootdir}/doc/%{name}'
 make
 make check
 

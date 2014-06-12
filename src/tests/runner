@@ -6,7 +6,7 @@
 set -e
 set -x
 
-PIDFILE="$(mktemp)"
+PIDFILE="$(mktemp -u)"
 
 memcached -u nobody -d -P "$PIDFILE"
 
@@ -17,4 +17,4 @@ cleanup() {
 
 trap cleanup EXIT
 
-sh -c "$@"
+$@

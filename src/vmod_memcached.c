@@ -2,7 +2,7 @@
 #include <libmemcached/memcached.h>
 
 #include "vrt.h"
-#include "bin/varnishd/cache.h"
+#include "cache/cache.h"
 
 #include "vcc_if.h"
 
@@ -15,7 +15,6 @@
  * thread, and there we store the 'memcached_st' structure. The
  * memcached_free function is registered as the desctructor.
  **/
-
 
 /** Initialize this module and thread-local data **/
 
@@ -34,23 +33,24 @@ memcached_st *
 get_memcached(void *server_list)
 {
 	memcached_st *mc = pthread_getspecific(thread_key);
-	if (!mc)
-	{
+	if (!mc) {
 #if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX > 0x00049000
-		if (strstr(server_list, "--SERVER")) { 
+		if (strstr(server_list, "--SERVER")) {
 			mc = memcached(server_list, strlen(server_list));
 		} else {
 #endif
-			memcached_server_st *servers = memcached_servers_parse(server_list);
+			memcached_server_st *servers =
+			    memcached_servers_parse(server_list);
 			mc = memcached_create(NULL);
-			memcached_server_push(mc, (memcached_server_st *)servers);
+			memcached_server_push(mc,
+			    (memcached_server_st *)servers);
 			memcached_server_list_free(servers);
-#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX > 0x00049000			
+#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX > 0x00049000
 		}
 #endif
 		pthread_setspecific(thread_key, mc);
 	}
-	return mc;
+	return (mc);
 }
 
 int
@@ -60,71 +60,77 @@ init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
 
 	pthread_once(&thread_once, make_key);
 
-	return 0;
+	return (0);
 }
 
-
 /** The following may ONLY be called from VCL_init **/
-
-void
-vmod_servers(struct sess *sp, struct vmod_priv *priv, const char *config)
+VCL_VOID
+vmod_servers(const struct vrt_ctx * ctx, struct vmod_priv * priv,
+    VCL_STRING config)
 {
-	priv->priv = (char*)config;
+	priv->priv = (char *)config;
 }
 
 /** The following may be called after 'memcached.servers(...)' **/
-
-void
-vmod_set(struct sess *sp, struct vmod_priv *priv, const char *key, const char *value, int expiration, int flags)
+VCL_VOID
+vmod_set(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
+    VCL_STRING value, VCL_INT expiration, VCL_INT flags)
 {
-	memcached_return rc;
 	memcached_st *mc = get_memcached(priv->priv);
-	if (!mc) return;
 
-	rc = memcached_set(mc, key, strlen(key), value, strlen(value), expiration, flags);
+	if (mc)
+		memcached_set(mc, key, strlen(key), value, strlen(value),
+		    expiration, flags);
 }
 
-const char *
-vmod_get(struct sess *sp, struct vmod_priv *priv, const char *key)
+VCL_STRING
+vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 {
 	size_t len;
 	uint32_t flags;
 	memcached_return rc;
 	memcached_st *mc = get_memcached(priv->priv);
-	if (!mc) return NULL;
+	char *p, *value;
 
-	char *value = memcached_get(mc, key, strlen(key), &len, &flags, &rc);
-	if (!value) return NULL;
+	if (!mc)
+		return (NULL);
 
-	char *ws_buf = WS_Dup(sp->ws, value);
+	value = memcached_get(mc, key, strlen(key), &len, &flags, &rc);
+	if (!value)
+		return (NULL);
+
+	p = WS_Copy(ctx->ws, value, -1);
 	free(value);
 
-	return ws_buf;
+	return (p);
 }
 
-int
-vmod_incr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
+VCL_INT
+vmod_incr(const struct vrt_ctx * ctx, struct vmod_priv * priv, VCL_STRING key,
+    VCL_INT offset)
 {
 	uint64_t value = 0;
-	memcached_return rc;
 	memcached_st *mc = get_memcached(priv->priv);
-	if (!mc) return 0;
 
-	rc = memcached_increment(mc, key, strlen(key), offset, &value);
+	if (!mc)
+		return (0);
 
-	return (int)value;
+	memcached_increment(mc, key, strlen(key), offset, &value);
+
+	return ((int)value);
 }
 
-int
-vmod_decr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
+VCL_INT
+vmod_decr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
+    VCL_INT offset)
 {
 	uint64_t value = 0;
-	memcached_return rc;
 	memcached_st *mc = get_memcached(priv->priv);
-	if (!mc) return 0;
 
-	rc = memcached_decrement(mc, key, strlen(key), offset, &value);
+	if (!mc)
+		return (0);
 
-	return (int)value;
+	memcached_decrement(mc, key, strlen(key), offset, &value);
+
+	return ((int)value);
 }
-

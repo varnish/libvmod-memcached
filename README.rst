@@ -48,13 +48,16 @@ Example
         ::
 
                 memcached.servers("localhost,anotherhost:12345");
+
         ::
 
                 memcached.servers("--SERVER=localhost --SERVER=anotherhost:12345");
+
         ::
 
                 // with consistent hashing enabled
                 memcached.servers("--SERVER=localhost --SERVER=anotherhost:12345 --DISTRIBUTION=consistent");
+
         ::
 
                 // with consistent hashing enabled and namespace
@@ -161,15 +164,7 @@ Usage::
  ./autogen.sh
 
  # Execute configure script
- ./configure VARNISHSRC=DIR [VMODDIR=DIR] [PKG_CONFIG=PATH] [LIBMEMCACHED_CFLAGS=COMPILE] [LIBMEMCACHED_LIBS=LINK]
-
-`VARNISHSRC` is the directory of the Varnish source tree for which to
-compile your vmod. Both the `VARNISHSRC` and `VARNISHSRC/include`
-will be added to the include search paths for your module.
-
-Optionally you can also set the vmod install directory by adding
-`VMODDIR=DIR` (defaults to the pkg-config discovered directory from your
-Varnish installation).
+ ./configure [PKG_CONFIG=PATH] [LIBMEMCACHED_CFLAGS=COMPILE] [LIBMEMCACHED_LIBS=LINK]
 
 The `configure` script uses `pkg-config` to find the libmemcached library. You
 may specify the `pkg-config` binary by setting the `PKG_CONFIG` option. If you
@@ -179,7 +174,7 @@ do not wish to use `pkg-config`, you may set `LIBMEMCACHED_CFLAGS` and
 Make targets:
 
 * make - builds the vmod
-* make install - installs your vmod in `VMODDIR`
+* make install - installs your vmod
 * make check - runs the unit tests in ``src/tests/*.vtc``
 
 SEE ALSO
