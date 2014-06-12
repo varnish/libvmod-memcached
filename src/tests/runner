@@ -11,8 +11,8 @@ PIDFILE="$(mktemp -u)"
 memcached -u nobody -d -P "$PIDFILE"
 
 cleanup() {
-    kill $(cat "$PIDFILE")
-    rm -f "$PIDFILE"
+	kill $(cat "$PIDFILE")
+	rm -f "$PIDFILE"
 }
 
 trap cleanup EXIT
