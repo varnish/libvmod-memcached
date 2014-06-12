@@ -34,7 +34,7 @@ Prototype
 
                 servers(STRING servers)
 Return value
-	NONE
+	VOID
 Description
 	Set the list of memcached servers available for requests handled by this VCL. The syntax is a whitespace or comma 
         separated list of one or more "hostname[:port]" items.
@@ -71,13 +71,11 @@ Prototype
 
                 STRING get(STRING key)
 Return value
-	STRING V
+	STRING
 Description
 	Retrieve key from memcached, returns string value.
 Example
         ::
-
-                memcached.servers("localhost");
 
                 set resp.http.hello = memcached.get("your_memcached_key");
 
@@ -89,17 +87,13 @@ Prototype
 
                 set(STRING key, STRING value, INT expiration, INT flags)
 Return value
-	NONE
+	VOID
 Description
 	Set key to value, with an expiration time and flags.
 Example
         ::
 
-                memcached.servers("localhost");
-
                 memcached.set("your_memcached_key", "Hello, World", 100, 0);
-
-                set resp.http.hello = memcached.get("your_memcached_key");
 
 incr
 ----
@@ -111,19 +105,13 @@ Prototype
 Return value
 	INT
 Description
-	Increment key by offset, unless key is not set. Return value is 0 if not set.
+	Increment key by offset and return the new value. If key is not set return 0.
 Example
         ::
 
-                memcached.servers("localhost");
-
                 memcached.set("your_counter", "1", 100, 0);
-
-                memcached.incr("your_counter", 10);
-
-                set resp.http.count = memcached.incr("your_counter", 1);
-
-		// Header value is Count: 12
+                set resp.http.count = memcached.incr("your_counter", 10);
+                # count is 11
 
 decr
 ----
@@ -135,19 +123,13 @@ Prototype
 Return value
 	INT
 Description
-	Decrement key by offset, unless key is not set. Return value is 0 if not set.
+	Decrement key by offset and return the new value. If key is not set return 0.
 Example
         ::
 
-                memcached.servers("localhost");
-
                 memcached.set("your_counter", "10", 100, 0);
-
-                memcached.decr("your_counter", 8);
-
-                set resp.http.count = memcached.decr("your_counter", 1);
-
-		// Header value is Count: 1
+                set resp.http.count = memcached.decr("your_counter", 8);
+                # count is 2
 
 
 INSTALLATION
