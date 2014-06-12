@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <libmemcached/memcached.h>
 
 #include "vrt.h"
@@ -13,7 +12,7 @@
  *
  * Pthreads is used to associated a thread-specific value with each
  * thread, and there we store the 'memcached_st' structure. The
- * memcached_free function is registered as the desctructor.
+ * memcached_free function is registered as the destructor.
  **/
 
 /** Initialize this module and thread-local data **/
@@ -56,6 +55,8 @@ get_memcached(void *server_list)
 int
 init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
 {
+	(void)conf;
+
 	priv->free = (vmod_priv_free_f *)memcached_server_list_free;
 
 	pthread_once(&thread_once, make_key);
@@ -64,26 +65,32 @@ init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
 }
 
 /** The following may ONLY be called from VCL_init **/
-VCL_VOID
-vmod_servers(const struct vrt_ctx * ctx, struct vmod_priv * priv,
+
+VCL_VOID __match_proto__(td_memcached_servers)
+vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv,
     VCL_STRING config)
 {
+	(void)ctx;
+
 	priv->priv = (char *)config;
 }
 
 /** The following may be called after 'memcached.servers(...)' **/
-VCL_VOID
+
+VCL_VOID __match_proto__(td_memcached_set)
 vmod_set(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
     VCL_STRING value, VCL_INT expiration, VCL_INT flags)
 {
 	memcached_st *mc = get_memcached(priv->priv);
+
+	(void)ctx;
 
 	if (mc)
 		memcached_set(mc, key, strlen(key), value, strlen(value),
 		    expiration, flags);
 }
 
-VCL_STRING
+VCL_STRING __match_proto__(td_memcached_get)
 vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 {
 	size_t len;
@@ -105,12 +112,14 @@ vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 	return (p);
 }
 
-VCL_INT
-vmod_incr(const struct vrt_ctx * ctx, struct vmod_priv * priv, VCL_STRING key,
+VCL_INT __match_proto__(td_memcached_incr)
+vmod_incr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
     VCL_INT offset)
 {
 	uint64_t value = 0;
 	memcached_st *mc = get_memcached(priv->priv);
+
+	(void)ctx;
 
 	if (!mc)
 		return (0);
@@ -120,12 +129,14 @@ vmod_incr(const struct vrt_ctx * ctx, struct vmod_priv * priv, VCL_STRING key,
 	return ((int)value);
 }
 
-VCL_INT
+VCL_INT __match_proto__(td_memcached_decr)
 vmod_decr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
     VCL_INT offset)
 {
 	uint64_t value = 0;
 	memcached_st *mc = get_memcached(priv->priv);
+
+	(void)ctx;
 
 	if (!mc)
 		return (0);
