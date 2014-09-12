@@ -145,3 +145,39 @@ vmod_decr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
 
 	return ((int)value);
 }
+
+VCL_INT __match_proto__(td_memcached_incr_set)
+vmod_incr_set(const struct vrt_ctx *ctx, struct vmod_priv *priv,
+    VCL_STRING key, VCL_INT offset, VCL_INT initial, VCL_INT expiration)
+{
+	uint64_t value = 0;
+	memcached_st *mc = get_memcached(priv->priv);
+
+	(void)ctx;
+
+	if (!mc)
+		return (0);
+
+	memcached_increment_with_initial(mc, key, strlen(key), offset,
+	    initial, expiration, &value);
+
+	return ((int)value);
+}
+
+VCL_INT __match_proto__(td_memcached_decr_set)
+vmod_decr_set(const struct vrt_ctx *ctx, struct vmod_priv *priv,
+    VCL_STRING key, VCL_INT offset, VCL_INT initial, VCL_INT expiration)
+{
+	uint64_t value = 0;
+	memcached_st *mc = get_memcached(priv->priv);
+
+	(void)ctx;
+
+	if (!mc)
+		return (0);
+
+	memcached_decrement_with_initial(mc, key, strlen(key), offset,
+	    initial, expiration, &value);
+
+	return ((int)value);
+}

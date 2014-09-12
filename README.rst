@@ -131,6 +131,45 @@ Example
                 set resp.http.count = memcached.decr("your_counter", 8);
                 # count is 2
 
+incr_set
+--------
+
+Prototype
+        ::
+
+                INT incr_set(STRING key, INT offset, INT initial, INT expiration)
+Return value
+        INT
+Description
+        Increment key by offset and return the new value. If key is not
+        set, key will be set to initial with an expiration time.
+
+        This is only available when using the binary protocol.
+Example
+        ::
+
+                # Increment key by 1 if set, otherwise set it to 10 with no expiration.
+                set resp.http.value = memcached.incr_set("key", 1, 10, 0);
+
+decr_set
+--------
+
+Prototype
+        ::
+
+                INT decr_set(STRING key, INT offset, INT initial, INT expiration)
+Return value
+        INT
+Description
+        Decrement key by offset and return the new value. If key is not
+        set, key will be set to initial with an expiration time.
+
+        This is only available when using the binary protocol.
+Example
+        ::
+
+                # Decrement key by 1 if set, otherwise set it to 10 with no expiration.
+                set resp.http.value = memcached.decr_set("key", 1, 10, 0);
 
 INSTALLATION
 ============
