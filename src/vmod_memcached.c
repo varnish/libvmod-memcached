@@ -128,3 +128,38 @@ vmod_decr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
 	return (int)value;
 }
 
+int
+vmod_incr_set(struct sess *sp, struct vmod_priv *priv, const char *key,
+    int offset, int initial, int expiration)
+{
+	uint64_t value = 0;
+	memcached_st *mc = get_memcached(priv->priv);
+
+	(void)sp;
+
+	if (!mc)
+		return (0);
+
+	memcached_increment_with_initial(mc, key, strlen(key), offset,
+	    initial, expiration, &value);
+
+	return ((int)value);
+}
+
+int
+vmod_decr_set(struct sess *sp, struct vmod_priv *priv, const char *key,
+    int offset, int initial, int expiration)
+{
+	uint64_t value = 0;
+	memcached_st *mc = get_memcached(priv->priv);
+
+	(void)sp;
+
+	if (!mc)
+		return (0);
+
+	memcached_decrement_with_initial(mc, key, strlen(key), offset,
+	    initial, expiration, &value);
+
+	return ((int)value);
+}

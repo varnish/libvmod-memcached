@@ -1,0 +1,31 @@
+varnishtest "Test incr_set and decr_set"
+
+server s1 {
+	rxreq
+	txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
+
+	sub vcl_init {
+		memcached.servers("--SERVER=localhost --BINARY-PROTOCOL");
+	}
+
+	sub vcl_deliver {
+		set resp.http.init =
+		    memcached.incr_set("test05", 3, 2, 0);
+		set resp.http.high =
+		    memcached.incr_set("test05", 3, 2, 0);
+		set resp.http.low =
+		    memcached.decr_set("test05", 1, 2, 0);
+	}
+} -start
+
+client c1 {
+	txreq -url "/"
+	rxresp
+	expect resp.http.init == "2"
+	expect resp.http.high == "5"
+	expect resp.http.low == "4"
+} -run
