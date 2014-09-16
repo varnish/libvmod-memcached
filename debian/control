@@ -1,0 +1,12 @@
+Source: libvmod-memcached
+Section: web
+Priority: extra
+Maintainer: Varnish Software <support@varnish-software.com>
+Build-Depends: debhelper (>= 7), build-essential, python-docutils, libmemcached-dev
+Standards-Version: 3.8.1
+Vcs-Git: git://github.com/varnish/libvmod-memcached.git
+
+Package: libvmod-memcached
+Architecture: any
+Depends: varnish, ${Varnish:ABI}, ${misc:Depends}
+Description: memcached vmod for Varnish
