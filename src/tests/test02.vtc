@@ -1,8 +1,8 @@
-varnishtest "Test memcached vmod"
+varnishtest "Test incr and decr with hostname"
 
 server s1 {
-       rxreq
-       txresp
+	rxreq
+	txresp
 } -start
 
 varnish v1 -vcl+backend {

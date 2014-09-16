@@ -1,8 +1,8 @@
-varnishtest "Test memcached vmod"
+varnishtest "Test set and get with --SERVER"
 
 server s1 {
-       rxreq
-       txresp
+	rxreq
+	txresp
 } -start
 
 varnish v1 -vcl+backend {
