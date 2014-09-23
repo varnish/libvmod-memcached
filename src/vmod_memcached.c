@@ -132,9 +132,13 @@ vmod_decr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
     VCL_INT offset)
 {
 	uint64_t value = 0;
-	memcached_st *mc = get_memcached(priv->priv);
 
+#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX < 0x00049000
+	VSL(SLT_VCL_Log, 0, "memcached: Function unsupported by libmemcached");
+	return(0);
+#endif
 	(void)ctx;
+	memcached_st *mc = get_memcached(priv->priv);
 
 	if (!mc)
 		return (0);
@@ -149,6 +153,12 @@ vmod_incr_set(const struct vrt_ctx *ctx, struct vmod_priv *priv,
     VCL_STRING key, VCL_INT offset, VCL_INT initial, VCL_INT expiration)
 {
 	uint64_t value = 0;
+
+#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX < 0x00049000
+	VSL(SLT_VCL_Log, 0, "memcached: Function unsupported by libmemcached");
+	return(0);
+#endif
+
 	memcached_st *mc = get_memcached(priv->priv);
 
 	(void)ctx;

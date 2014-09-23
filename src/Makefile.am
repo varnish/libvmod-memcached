@@ -18,7 +18,12 @@ $(libvmod_memcached_la_OBJECTS): vcc_if.h
 vcc_if.c vcc_if.h: @VMODTOOL@ $(top_srcdir)/src/vmod_memcached.vcc
 	@VMODTOOL@ $(top_srcdir)/src/vmod_memcached.vcc
 
+if RECENT_LIBMEMCACHED
 VMOD_TESTS = $(top_srcdir)/src/tests/*.vtc
+else
+VMOD_TESTS = $(top_srcdir)/src/tests/test01.vtc $(top_srcdir)/src/tests/test02.vtc
+endif
+
 .PHONY: $(VMOD_TESTS)
 
 $(top_srcdir)/src/tests/*.vtc:
