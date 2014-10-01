@@ -8,7 +8,7 @@ set -x
 
 PIDFILE="$(mktemp -u)"
 
-memcached -u nobody -d -P "$PIDFILE"
+memcached -u nobody -d -P "$PIDFILE" -p 24472
 
 cleanup() {
 	kill $(cat "$PIDFILE")
