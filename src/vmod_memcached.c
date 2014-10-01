@@ -47,6 +47,9 @@ get_memcached(void *server_list)
 #if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX > 0x00049000
 		}
 #endif
+
+		if (mc == NULL) VSL(SLT_VCL_Log, 0,
+		    "ERROR: Allocation failure on memcached context.");
 		pthread_setspecific(thread_key, mc);
 	}
 	return (mc);
