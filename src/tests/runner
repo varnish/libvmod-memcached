@@ -1,13 +1,15 @@
 #! /bin/sh
-
-# These tests require a running memcached.  We assume there is none
-# running already.
+# These tests require a runnable memcached.
 
 set -e
 set -x
 
-PIDFILE="$(mktemp -u)"
+if pgrep memcached; then
+	echo "ERROR: memcached is already running, abort."
+	exit 255
+fi
 
+PIDFILE="$(mktemp -u)"
 memcached -u nobody -d -P "$PIDFILE"
 
 cleanup() {
