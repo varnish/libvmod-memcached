@@ -56,7 +56,7 @@ AC_PATH_PROG([VARNISHD], [varnishd], [],
 PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached])
 
 # XXX: Find the proper way of doing this.
-AM_CONDITIONAL(RECENT_LIBMEMCACHED, [pkg-config --atleast-version=0.39 libmemcached])
+AM_CONDITIONAL(RECENT_LIBMEMCACHED, [pkg-config --atleast-version=0.50 libmemcached])
 
 AC_CONFIG_FILES([
 	Makefile
