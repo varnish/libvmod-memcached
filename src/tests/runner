@@ -4,13 +4,8 @@
 set -e
 set -x
 
-if pgrep memcached; then
-	echo "ERROR: memcached is already running, abort."
-	exit 255
-fi
-
 PIDFILE="$(mktemp -u)"
-memcached -u nobody -d -P "$PIDFILE"
+memcached -u nobody -d -P "$PIDFILE" -p 24472
 
 cleanup() {
 	kill $(cat "$PIDFILE")
