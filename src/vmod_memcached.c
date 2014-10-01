@@ -131,11 +131,6 @@ vmod_decr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
 {
 	uint64_t value = 0;
 
-#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX < 0x00049000
-	VSL(SLT_VCL_Log, 0, "memcached: Function unsupported by libmemcached");
-	return(0);
-#endif
-
 	memcached_st *mc = get_memcached(priv->priv);
 	(void)sp;
 
@@ -176,6 +171,12 @@ vmod_decr_set(struct sess *sp, struct vmod_priv *priv, const char *key,
     int offset, int initial, int expiration)
 {
 	uint64_t value = 0;
+
+#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX < 0x00049000
+	VSL(SLT_VCL_Log, 0, "memcached: Function unsupported by libmemcached");
+	return(0);
+#endif
+
 	memcached_st *mc = get_memcached(priv->priv);
 
 	(void)sp;
