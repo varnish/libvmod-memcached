@@ -1,0 +1,19 @@
+varnishtest "Test crash on free"
+
+server s1 {
+	rxreq
+	txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
+	sub vcl_init {
+		memcached.servers("localhost:24472");
+	}
+} -start
+
+varnish v1 -vcl+backend { }
+
+varnish v1 -cli "vcl.list"
+varnish v1 -cli "vcl.use vcl2"
+varnish v1 -cli "vcl.discard vcl1"

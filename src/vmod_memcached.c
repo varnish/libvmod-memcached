@@ -60,8 +60,6 @@ init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
 {
 	(void)conf;
 
-	priv->free = (vmod_priv_free_f *)memcached_server_list_free;
-
 	pthread_once(&thread_once, make_key);
 
 	return (0);

@@ -17,7 +17,7 @@ nodist_libvmod_memcached_la_SOURCES = \
 if RECENT_LIBMEMCACHED
 VMOD_TESTS = tests/*.vtc
 else
-VMOD_TESTS = tests/test01.vtc tests/test02.vtc
+VMOD_TESTS = tests/test01.vtc tests/test02.vtc tests/test06.vtc
 endif
 
 
