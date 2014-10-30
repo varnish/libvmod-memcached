@@ -25,6 +25,7 @@ check:
 
 EXTRA_DIST = \
 	vmod_memcached.vcc \
+	tests/runner \
 	$(VMOD_TESTS)
 
 CLEANFILES = $(builddir)/vcc_if.c \
