@@ -13,7 +13,7 @@ BuildRequires: make, python-docutils, libmemcached-devel, memcached
 Memcached VMOD
 
 %prep
-%setup -n libvmod-memcached
+%setup -n libvmod-example-trunk
 
 %build
 ./configure --prefix=/usr/ --docdir='${datarootdir}/doc/%{name}'
