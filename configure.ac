@@ -42,6 +42,8 @@ if test "x$PYTHON" = "xno"; then
 	AC_MSG_ERROR([Python > 2.5 is needed to build this vmod, please install Python 2.6 or greater.])
 fi
 
+PKG_CHECK_MODULES([libvarnishapi], [varnishapi])
+
 VARNISH_VMOD_INCLUDES
 VARNISH_VMOD_DIR
 VARNISH_VMODTOOL
