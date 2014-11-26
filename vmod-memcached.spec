@@ -21,7 +21,7 @@ Memcached VMOD
 %setup -n libvmod-memcached-trunk
 
 %build
-./configure --prefix=/usr/ --docdir='${datarootdir}/doc/%{name}'
+%configure --prefix=/usr/
 make
 make check
 
