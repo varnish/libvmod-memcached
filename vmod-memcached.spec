@@ -27,15 +27,13 @@ make check
 
 %install
 make install DESTDIR=%{buildroot}
-mv %{buildroot}/usr/share/doc/lib%{name} %{buildroot}/usr/share/doc/%{name}
 
 %clean
 rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%{_libdir}/varnish/vmods/
-%doc /usr/share/doc/%{name}/*
+%{_libdir}/varnis*/vmods/
 %{_mandir}/man?/*
 
 %changelog
