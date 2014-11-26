@@ -27,6 +27,7 @@ make check
 
 %install
 make install DESTDIR=%{buildroot}
+mv %{buildroot}/usr/share/doc/lib%{name} %{buildroot}/usr/share/doc/%{name}
 
 %clean
 rm -rf %{buildroot}
