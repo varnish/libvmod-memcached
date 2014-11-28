@@ -7,7 +7,10 @@ DISTCHECK_CONFIGURE_FLAGS = \
 
 EXTRA_DIST = README.rst LICENSE vmod-memcached.spec debian
 
+doc_DATA = README.rst LICENSE
+
 dist_man_MANS = vmod_memcached.3
+
 MAINTAINERCLEANFILES = $(dist_man_MANS)
 
 vmod_memcached.3: README.rst
