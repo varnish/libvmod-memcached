@@ -35,6 +35,7 @@ Memcached VMOD
 %files
 %defattr(-,root,root,-)
 %{_libdir}/varnis*/vmods/
+%doc /usr/share/doc/lib%{name}/*
 %{_mandir}/man?/*
 
 %changelog
