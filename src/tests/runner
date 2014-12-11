@@ -1,14 +1,11 @@
-#! /bin/sh
-
-# These tests require a running memcached.  We assume there is none
-# running already.
+#!/bin/bash
+# These tests require a running memcached, so set one up.
 
 set -e
 set -x
 
+SERVERPORT=$(($RANDOM + 1024))
 PIDFILE="$(mktemp -u)"
-
-memcached -u nobody -d -P "$PIDFILE" -p 24472
 
 cleanup() {
 	kill $(cat "$PIDFILE")
@@ -17,4 +14,8 @@ cleanup() {
 
 trap cleanup EXIT
 
-$@
+memcached -u nobody -d -P "$PIDFILE" -p $SERVERPORT
+
+# Call varnishtest with arguments.
+# ($@ would be better, but bash array operations...)
+$1 $2 $3 -Dmemcached_port=$SERVERPORT $4
