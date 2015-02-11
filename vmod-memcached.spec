@@ -9,7 +9,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires: varnish > 3.0
 BuildRequires: make
 BuildRequires: python-docutils
-BuildRequires: libmemcached-dev
+BuildRequires: libmemcached-devel
 BuildRequires: memcached
 
 %description
