@@ -15,5 +15,5 @@ Vcs-Git: git://github.com/varnish/libvmod-memcached.git
 
 Package: libvmod-memcached
 Architecture: any
-Depends: varnish (>= 4.0.2), ${misc:Depends}, ${Varnish:ABI}
-Description: memcached vmod for Varnish
+Depends: varnish (>= 4.0.2), ${misc:Depends}, ${shlibs:Depends}, ${Varnish:ABI}
+Description: Memcached module for Varnish VCL.
