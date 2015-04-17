@@ -8,11 +8,13 @@
 
 #include <time.h>
 
-
 typedef struct
 {
 	memcached_pool_st *pool;
 	long pool_timeout_msec;
+	int conn_error_int;
+	char *conn_error_str;
+	char conn_error_str_value[128];
 }
 vmod_mc_vcl_settings;
 
@@ -34,13 +36,17 @@ int init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
 
 	AN(settings);
 
+	settings->pool_timeout_msec = 2000;
+	settings->conn_error_int = -2;
+	settings->conn_error_str = NULL;
+
 	priv->priv=settings;
 	priv->free=free_mc_vcl_settings;
 
 	return 0;
 }
 
-memcached_st *get_memcached(const struct vrt_ctx *ctx, vmod_mc_vcl_settings *settings)
+static memcached_st *get_memcached(const struct vrt_ctx *ctx, vmod_mc_vcl_settings *settings)
 {
 	memcached_return_t rc;
 	memcached_st *mc;
@@ -48,8 +54,8 @@ memcached_st *get_memcached(const struct vrt_ctx *ctx, vmod_mc_vcl_settings *set
 
 	AN(settings->pool);
 
-	wait.tv_nsec = 0;
-	wait.tv_sec = 2;
+	wait.tv_nsec = 1000 * 1000 * (settings->pool_timeout_msec % 1000);
+	wait.tv_sec = settings->pool_timeout_msec / 1000;
 
 	mc = memcached_pool_fetch(settings->pool, &wait, &rc);
 
@@ -61,7 +67,7 @@ memcached_st *get_memcached(const struct vrt_ctx *ctx, vmod_mc_vcl_settings *set
 	return NULL;
 }
 
-void release_memcached(const struct vrt_ctx *ctx, vmod_mc_vcl_settings *settings, memcached_st *mc)
+static void release_memcached(const struct vrt_ctx *ctx, vmod_mc_vcl_settings *settings, memcached_st *mc)
 {
 	memcached_pool_release(settings->pool, mc);
 }
@@ -97,12 +103,17 @@ VCL_STRING vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRIN
 
 	if (!mc)
 	{
-		return NULL;
+		return settings->conn_error_str;
 	}
 
 	value = memcached_get(mc, key, strlen(key), &len, &flags, &rc);
 
 	release_memcached(ctx, settings, mc);
+
+	if(rc)
+	{
+		return settings->conn_error_str;
+	}
 
 	if (!value)
 	{
@@ -110,84 +121,116 @@ VCL_STRING vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRIN
 	}
 
 	p = WS_Copy(ctx->ws, value, -1);
+
 	free(value);
 
 	return p;
 }
 
-VCL_INT __match_proto__(td_memcached_incr)
-vmod_incr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL_INT offset)
+VCL_INT vmod_incr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL_INT offset)
 {
+	memcached_return_t rc;
 	uint64_t value = 0;
 	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
 	memcached_st *mc = get_memcached(ctx, settings);
 
 	if (!mc)
 	{
-		return 0;
+		return settings->conn_error_int;
 	}
 
 	memcached_increment(mc, key, strlen(key), offset, &value);
 
+	rc = memcached_last_error(mc);
+
 	release_memcached(ctx, settings, mc);
 
-	return (int)value;
+	if(rc)
+	{
+		return settings->conn_error_int;
+	}
+
+	return (VCL_INT)value;
 }
 
 VCL_INT vmod_decr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL_INT offset)
 {
+	memcached_return_t rc;
 	uint64_t value = 0;
 	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
 	memcached_st *mc = get_memcached(ctx, settings);
 
 	if (!mc)
 	{
-		return 0;
+		return settings->conn_error_int;
 	}
 
 	memcached_decrement(mc, key, strlen(key), offset, &value);
 
+	rc = memcached_last_error(mc);
+
 	release_memcached(ctx, settings, mc);
 
-	return (int)value;
+	if(rc)
+	{
+		return settings->conn_error_int;
+	}
+
+	return (VCL_INT)value;
 }
 
 VCL_INT vmod_incr_set(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 	VCL_STRING key, VCL_INT offset, VCL_INT initial, VCL_INT expiration)
 {
+	memcached_return_t rc;
 	uint64_t value = 0;
 	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
 	memcached_st *mc = get_memcached(ctx, settings);
 
 	if (!mc)
 	{
-		return 0;
+		return settings->conn_error_int;
 	}
 
 	memcached_increment_with_initial(mc, key, strlen(key), offset,
 		initial, expiration, &value);
 
+	rc = memcached_last_error(mc);
+
 	release_memcached(ctx, settings, mc);
 
-	return (int)value;
+	if(rc)
+	{
+		return settings->conn_error_int;
+	}
+
+	return (VCL_INT)value;
 }
 
 VCL_INT vmod_decr_set(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 	VCL_STRING key, VCL_INT offset, VCL_INT initial, VCL_INT expiration)
 {
+	memcached_return_t rc;
 	uint64_t value = 0;
 	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
 	memcached_st *mc = get_memcached(ctx, settings);
 
 	if (!mc)
 	{
-		return (0);
+		return settings->conn_error_int;
 	}
 
 	memcached_decrement_with_initial(mc, key, strlen(key), offset,
 		initial, expiration, &value);
 
+	rc = memcached_last_error(mc);
+
 	release_memcached(ctx, settings, mc);
 
-	return (int)value;
+	if(rc)
+	{
+		return settings->conn_error_int;
+	}
+
+	return (VCL_INT)value;
 }
