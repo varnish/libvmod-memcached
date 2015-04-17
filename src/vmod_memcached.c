@@ -8,6 +8,7 @@
 
 #include <time.h>
 
+
 typedef struct
 {
 	memcached_pool_st *pool;
@@ -74,9 +75,18 @@ static void release_memcached(const struct vrt_ctx *ctx, vmod_mc_vcl_settings *s
 
 VCL_VOID vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING config)
 {
+	char error_buf[256];
 	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
 
 	settings->pool = memcached_pool(config, strlen(config));
+
+	if(!settings->pool)
+	{
+		libmemcached_check_configuration(config, strlen(config), error_buf, sizeof(error_buf));
+		VSL(SLT_Error, 0, "memcached servers() error");
+		VSL(SLT_Error, 0, "%s", error_buf);
+		AN(settings->pool);
+	}
 }
 
 VCL_VOID vmod_set(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
