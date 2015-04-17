@@ -99,6 +99,13 @@ VCL_VOID vmod_error_string(const struct vrt_ctx *ctx, struct vmod_priv *priv, VC
 	settings->conn_error_str = settings->conn_error_str_value;
 }
 
+VCL_VOID vmod_pool_timeout_msec(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_INT timeout)
+{
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
+
+	settings->pool_timeout_msec = timeout;
+}
+
 VCL_VOID vmod_set(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
 	VCL_STRING value, VCL_INT expiration, VCL_INT flags)
 {
