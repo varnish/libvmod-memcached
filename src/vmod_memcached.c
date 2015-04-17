@@ -78,6 +78,8 @@ VCL_VOID vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STR
 	char error_buf[256];
 	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
 
+	AZ(settings->pool);
+
 	settings->pool = memcached_pool(config, strlen(config));
 
 	if(!settings->pool)
@@ -89,7 +91,7 @@ VCL_VOID vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STR
 	}
 }
 
-VCL_VOID vmod_error_string(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING string)
+VCL_VOID vmod_conn_error_string(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING string)
 {
 	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
 
