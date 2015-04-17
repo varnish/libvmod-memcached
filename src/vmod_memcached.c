@@ -89,6 +89,16 @@ VCL_VOID vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STR
 	}
 }
 
+VCL_VOID vmod_error_string(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING string)
+{
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
+
+	strncpy(settings->conn_error_str_value, string, sizeof(settings->conn_error_str_value));
+	settings->conn_error_str_value[sizeof(settings->conn_error_str_value) - 1] = '\0';
+
+	settings->conn_error_str = settings->conn_error_str_value;
+}
+
 VCL_VOID vmod_set(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
 	VCL_STRING value, VCL_INT expiration, VCL_INT flags)
 {
@@ -120,7 +130,7 @@ VCL_STRING vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRIN
 
 	release_memcached(ctx, settings, mc);
 
-	if(rc)
+	if(rc && rc != MEMCACHED_NOTFOUND)
 	{
 		return settings->conn_error_str;
 	}
