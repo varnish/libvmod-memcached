@@ -1,7 +1,7 @@
 $Module memcached 3
 $Init init_function
 $Function VOID servers(PRIV_VCL, STRING)
-$Function VOID conn_error_string(PRIV_VCL, STRING)
+$Function VOID error_string(PRIV_VCL, STRING)
 $Function VOID pool_timeout_msec(PRIV_VCL, INT)
 $Function VOID set(PRIV_VCL, STRING, STRING, INT, INT)
 $Function STRING get(PRIV_VCL, STRING)
