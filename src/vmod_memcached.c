@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <libmemcached/memcached.h>
 #include <libmemcached/util.h>
 
@@ -6,16 +8,24 @@
 
 #include "vcc_if.h"
 
+#include <string.h>
 #include <time.h>
+
+
+#define POOL_MAX_CONN_PREFIX  "--POOL-MAX="
+#define POOL_MAX_CONN         " " POOL_MAX_CONN_PREFIX "40"
+#define POOL_TIMEOUT_MSEC     3000
+#define POOL_ERROR_INT        -1
+#define POOL_ERROR_STRING     NULL
 
 
 typedef struct
 {
-	memcached_pool_st *pool;
-	long pool_timeout_msec;
-	int error_int;
-	char *error_str;
-	char error_str_value[128];
+	memcached_pool_st  *pool;
+	long                pool_timeout_msec;
+	int                 error_int;
+	char               *error_str;
+	char                error_str_value[128];
 }
 vmod_mc_vcl_settings;
 
@@ -37,9 +47,9 @@ int init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
 
 	AN(settings);
 
-	settings->pool_timeout_msec = 2000;
-	settings->error_int = -1;
-	settings->error_str = NULL;
+	settings->pool_timeout_msec = POOL_TIMEOUT_MSEC;
+	settings->error_int = POOL_ERROR_INT;
+	settings->error_str = POOL_ERROR_STRING;
 
 	priv->priv=settings;
 	priv->free=free_mc_vcl_settings;
@@ -80,7 +90,22 @@ VCL_VOID vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STR
 
 	AZ(settings->pool);
 
-	settings->pool = memcached_pool(config, strlen(config));
+	if(strcasestr(config, POOL_MAX_CONN_PREFIX))
+	{
+		settings->pool = memcached_pool(config, strlen(config));
+	}
+	else
+	{
+		size_t pool_len = strlen(config) + strlen(POOL_MAX_CONN);
+		char *pool_str = malloc(pool_len + 1);
+
+		strcpy(pool_str, config);
+		strcat(pool_str, POOL_MAX_CONN);
+
+		settings->pool = memcached_pool(pool_str, pool_len);
+
+		free(pool_str);
+	}
 
 	if(!settings->pool)
 	{
