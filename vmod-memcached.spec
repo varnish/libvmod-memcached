@@ -1,6 +1,6 @@
 Summary: Memcached VMOD for Varnish
 Name: vmod-memcached
-Version: 0.1
+Version: 0.3
 Release: 1%{?dist}
 License: BSD
 Group: System Environment/Daemons
@@ -12,7 +12,7 @@ BuildRequires: python-docutils
 BuildRequires: varnish >= 4.0.2
 BuildRequires: varnish-libs-devel >= 4.0.2
 BuildRequires: memcached
-BuildRequires: libmemcached-devel
+BuildRequires: libmemcached-devel >= 0.50
 
 %description
 Memcached VMOD
@@ -39,5 +39,7 @@ Memcached VMOD
 %{_mandir}/man?/*
 
 %changelog
+* Tue Apr 21 2015 Reza Naghibi <reza@varnish-software.com> - 0.3
+- Connection pooling
 * Tue Nov 14 2012 Lasse Karstensen <lasse@varnish-software.com> - 0.1-0.20121114
 - Initial version.
