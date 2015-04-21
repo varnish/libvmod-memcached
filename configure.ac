@@ -53,7 +53,7 @@ AC_PATH_PROG([VARNISHD], [varnishd], [],
     [$PATH:$PATH:`pkg-config varnishapi --variable=sbindir`])
 
 # Look for libmemcached using pkg-config
-PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached >= 0.50])
+PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached > 0.53])
 
 AC_CONFIG_FILES([
 	Makefile
