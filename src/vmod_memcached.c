@@ -94,6 +94,8 @@ VCL_VOID vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STR
 	if(strcasestr(config, POOL_MAX_CONN_PREFIX))
 	{
 		settings->pool = memcached_pool(config, strlen(config));
+
+		VSL(SLT_Debug, 0, "memcached pool config '%s'", config);
 	}
 	else
 	{
@@ -104,6 +106,8 @@ VCL_VOID vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STR
 		strcat(pool_str, POOL_MAX_CONN_PARAM);
 
 		settings->pool = memcached_pool(pool_str, pool_len);
+
+		VSL(SLT_Debug, 0, "memcached pool config '%s'", pool_str);
 
 		free(pool_str);
 	}
