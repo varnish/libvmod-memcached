@@ -23,8 +23,6 @@ DESCRIPTION
 
 Varnish vmod using libmemcached to access memcached servers.
 
-Note, this vmod requires pooling support from libmemcachedutil.
-
 FUNCTIONS
 =========
 
@@ -40,8 +38,8 @@ Return value
 Description
         Set the memcached parameters for requests handled by this VCL.
 
-        The old style of a comma seperated server list (version 0.49 and
-        prior) is no longer supported.
+        Note, the old style of a comma seperated server list is no longer
+        supported.
 
         Syntax to specify a server: "--SERVER=ip:port"
 
