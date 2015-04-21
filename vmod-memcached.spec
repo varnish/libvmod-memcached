@@ -12,7 +12,7 @@ BuildRequires: python-docutils
 BuildRequires: varnish >= 4.0.2
 BuildRequires: varnish-libs-devel >= 4.0.2
 BuildRequires: memcached
-BuildRequires: libmemcached-devel >= 0.50
+BuildRequires: libmemcached-devel > 0.53
 
 %description
 Memcached VMOD
