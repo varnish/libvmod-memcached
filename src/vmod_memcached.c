@@ -12,8 +12,9 @@
 #include <time.h>
 
 
+#define POOL_MAX_CONN_STR     "40"
 #define POOL_MAX_CONN_PREFIX  "--POOL-MAX="
-#define POOL_MAX_CONN         " " POOL_MAX_CONN_PREFIX "40"
+#define POOL_MAX_CONN_PARAM   " " POOL_MAX_CONN_PREFIX POOL_MAX_CONN_STR
 #define POOL_TIMEOUT_MSEC     3000
 #define POOL_ERROR_INT        -1
 #define POOL_ERROR_STRING     NULL
@@ -96,11 +97,11 @@ VCL_VOID vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STR
 	}
 	else
 	{
-		size_t pool_len = strlen(config) + strlen(POOL_MAX_CONN);
+		size_t pool_len = strlen(config) + strlen(POOL_MAX_CONN_PARAM);
 		char *pool_str = malloc(pool_len + 1);
 
 		strcpy(pool_str, config);
-		strcat(pool_str, POOL_MAX_CONN);
+		strcat(pool_str, POOL_MAX_CONN_PARAM);
 
 		settings->pool = memcached_pool(pool_str, pool_len);
 
