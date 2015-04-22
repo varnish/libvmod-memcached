@@ -67,7 +67,7 @@ Example
                 memcached.servers("--SERVER=10.1.1.14 --BINARY-PROTOCOL --POOL-MAX=10 --CONNECT-TIMEOUT=50 --RETRY-TIMEOUT=3");
 
 pool_timeout_msec
----
+-----------------
 
 Prototype
         ::
@@ -90,7 +90,7 @@ Example
                 memcached.pool_timeout_msec(10000);
 
 error_string
----
+------------
 
 Prototype
         ::
@@ -269,9 +269,9 @@ HISTORY
 
 This VMOD was refactored with the following goals:
 
--Remove pthread_specific functionality since its not vcl.reload safe
--Change one connection per thread to a shared connection pool
--Better error detection
+* Remove pthread_specific functionality since its not vcl.reload safe
+* Change one connection per thread to a shared connection pool
+* Better error detection
 
 0.1
 
