@@ -1,4 +1,4 @@
-varnishtest "Test set and get with hostname"
+varnishtest "Test set and get"
 
 server s1 {
 	rxreq

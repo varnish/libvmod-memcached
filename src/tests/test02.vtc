@@ -1,4 +1,4 @@
-varnishtest "Test incr and decr with hostname"
+varnishtest "Test incr and decr"
 
 server s1 {
 	rxreq
