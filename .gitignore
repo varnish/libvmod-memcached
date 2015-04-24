@@ -23,6 +23,7 @@ Makefile.in
 /libtool
 /ltmain.sh
 /missing
+/nbproject/
 /stamp-h1
 /m4/
 

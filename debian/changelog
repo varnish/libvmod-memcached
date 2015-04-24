@@ -1,3 +1,9 @@
+libvmod-memcached (0.3) unstable; urgency=low
+
+  * Pooling support
+
+ -- Reza Naghibi <reza@varnish-software.com>  Tue, 21 Apr 2015 20:25:00 +0000
+
 libvmod-memcached (0.1) unstable; urgency=low
 
   * First version
