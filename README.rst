@@ -9,7 +9,7 @@ Varnish Memcached Module
 :Author: Aaron Stone
 :Author: Federico G. Schwindt
 :Author: Reza Naghibi
-:Date: 2014-09-12
+:Date: 2015-04-24
 :Version: 0.3
 :Manual section: 3
 
