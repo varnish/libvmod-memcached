@@ -285,7 +285,7 @@ COPYRIGHT
 =========
 
 * Copyright (c) 2012 Aaron Stone
-* Copyright (c) 2014 Varnish Software
+* Copyright (c) 2014-2015 Varnish Software
 * See COPYING for copyright holders and descriptions.
 * See LICENSE for full copyright terms.
 
