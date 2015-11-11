@@ -1,4 +1,4 @@
-varnishtest "Test set and get"
+varnishtest "Test with no memcached"
 
 server s1 {
 	rxreq
@@ -9,17 +9,21 @@ varnish v1 -vcl+backend {
 	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
 
 	sub vcl_init {
-		memcached.servers("--SERVER=localhost:24472");
+		memcached.servers("--SERVER=127.0.0.1:1 --CONNECT-TIMEOUT=50");
+		memcached.error_string("_error_");
 	}
 
 	sub vcl_deliver {
 		memcached.set("test01", "Hello, World", 0, 0);
 		set resp.http.hello = memcached.get("test01");
+		memcached.set("test02", "1", 0, 0);
+		set resp.http.count = memcached.incr("test02", 3);
 	}
 } -start
 
 client c1 {
 	txreq -url "/"
 	rxresp
-	expect resp.http.hello == "Hello, World"
+	expect resp.http.hello == "_error_"
+	expect resp.http.count == "-1"
 } -run

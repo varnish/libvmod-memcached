@@ -8,8 +8,9 @@ Varnish Memcached Module
 
 :Author: Aaron Stone
 :Author: Federico G. Schwindt
-:Date: 2014-09-12
-:Version: 0.2
+:Author: Reza Naghibi
+:Date: 2015-11-11
+:Version: 0.3
 :Manual section: 3
 
 SYNOPSIS
@@ -35,27 +36,79 @@ Prototype
 Return value
         VOID
 Description
-        Set the list of memcached servers available for requests handled
-        by this VCL.
+        Set the memcached parameters for requests handled by this VCL.
 
-        libmemcached versions prior to 0.49 use a comma separated list
-        of one or more "hostname[:port]" servers.
+        Note, the old style of a comma seperated server list is no longer
+        supported.
 
-        Newer versions also support a custom syntax which uses
-        "--SERVER=ip:port" to specify a server.
+        Syntax to specify a server: "--SERVER=ip:port"
+
         See http://docs.libmemcached.org/libmemcached_configuration.html
         for all supported options.
 
-        Please note there is no error checking for this string. If
-        it's wrong you won't get an error but this module won't work.
-        Check first if the connection string is valid.
+        Please note that if you supply an invalid parameter string,
+        Varnish will fail to start.
+
+        This will create a connection pool for all VCL threads to share from.
+        Each active or available VCL will have its own connection pool.
+
+        If no --POOL-MAX parameter is specified, a pool will be created with
+        a maximum of 40 connection.
+
+        Using this function outside of vcl_init or calling it twice will
+        result in undefined behavior.
 Example
         ::
 
-                # Old format.
-                memcached.servers("hostA,hostB:1234");
-                # New format.
+                # 2 memcached hosts
                 memcached.servers("--SERVER=hostA --SERVER=hostB:1234");
+
+                # advanced connection options
+                memcached.servers("--SERVER=10.1.1.14 --BINARY-PROTOCOL --POOL-MAX=10 --CONNECT-TIMEOUT=50 --RETRY-TIMEOUT=3");
+
+pool_timeout_msec
+-----------------
+
+Prototype
+        ::
+
+                pool_timeout_msec(INT timeout)
+Return value
+        VOID
+Description
+        Set the maximum amount of time to wait for a connection, in
+        milliseconds, if the entire connection pool is in use.
+
+        The default value is 3000.
+
+        Using this function outside of vcl_init will result in undefined
+        behavior.
+Example
+        ::
+
+                # set the pool timeout of 10 seconds
+                memcached.pool_timeout_msec(10000);
+
+error_string
+------------
+
+Prototype
+        ::
+
+                error_string(STRING value)
+Return value
+        VOID
+Description
+        Set the string that is returned on a get() error.
+
+        The default value is an empty string.
+
+        Using this function outside of vcl_init will result in undefined
+        behavior.
+Example
+        ::
+
+                memcached.error_string("_ERROR");
 
 get
 ---
@@ -68,6 +121,8 @@ Return value
         STRING
 Description
         Retrieve key from memcached and return the value.
+
+        On error, the value of error_string() is returned.
 Example
         ::
 
@@ -100,8 +155,9 @@ Prototype
 Return value
         INT
 Description
-        Increment key by offset and return the new value. If key is not
-        set return 0.
+        Increment key by offset and return the new value.
+
+        If the key does not exist or an error occurs, -1 is returned.
 Example
         ::
 
@@ -118,8 +174,9 @@ Prototype
 Return value
         INT
 Description
-        Decrement key by offset and return the new value. If key is not
-        set return 0.
+        Decrement key by offset and return the new value.
+
+        If the key does not exist or an error occurs, -1 is returned.
 Example
         ::
 
@@ -140,6 +197,8 @@ Description
         set, key will be set to initial with an expiration time.
 
         This is only available when using the binary protocol.
+
+        If an error occurs, -1 is returned.
 Example
         ::
 
@@ -161,6 +220,8 @@ Description
         set, key will be set to initial with an expiration time.
 
         This is only available when using the binary protocol.
+
+        If an error occurs, -1 is returned.
 Example
         ::
 
@@ -212,6 +273,16 @@ SEE ALSO
 HISTORY
 =======
 
+0.3
+
+This VMOD was refactored with the following goals:
+
+* Remove pthread_specific functionality since its not vcl.reload safe
+* Change one connection per thread to a shared connection pool
+* Better error detection
+
+0.1
+
 The first revision of this document sketches out a rough plan for approaching a
 general purpose memcached client module for Varnish. More features are sure to
 be added as we go along.
@@ -222,7 +293,7 @@ COPYRIGHT
 =========
 
 * Copyright (c) 2012 Aaron Stone
-* Copyright (c) 2014 Varnish Software
+* Copyright (c) 2014-2015 Varnish Software
 * See COPYING for copyright holders and descriptions.
 * See LICENSE for full copyright terms.
 

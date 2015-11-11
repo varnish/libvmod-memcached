@@ -1,4 +1,4 @@
-varnishtest "Test set and get with --SERVER"
+varnishtest "Test invalid get with error_string"
 
 server s1 {
 	rxreq
@@ -10,16 +10,16 @@ varnish v1 -vcl+backend {
 
 	sub vcl_init {
 		memcached.servers("--SERVER=localhost:24472");
+		memcached.error_string("_error_");
 	}
 
 	sub vcl_deliver {
-		memcached.set("test01", "Hello, World", 0, 0);
-		set resp.http.hello = memcached.get("test01");
+		set resp.http.hello = memcached.get("test03");
 	}
 } -start
 
 client c1 {
 	txreq -url "/"
 	rxresp
-	expect resp.http.hello == "Hello, World"
+	expect resp.http.hello == "_error_"
 } -run

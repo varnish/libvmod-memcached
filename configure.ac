@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_COPYRIGHT([Copyright (c) 2012 Aaron Stone])
+AC_COPYRIGHT([Copyright (c) 2011-2015 Varnish Software AS])
 AC_INIT([libvmod-memcached], [trunk])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(src/vmod_memcached.vcc)
@@ -66,10 +66,7 @@ if test "x$VMODDIR" = x; then
 fi
 
 # Look for libmemcached using pkg-config
-PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached])
-
-# XXX: Find the proper way of doing this.
-AM_CONDITIONAL(RECENT_LIBMEMCACHED, [pkg-config --atleast-version=0.50 libmemcached])
+PKG_CHECK_MODULES([LIBMEMCACHED], [libmemcached > 0.53])
 
 AC_CONFIG_FILES([
 	Makefile

@@ -1,192 +1,290 @@
+#define _GNU_SOURCE
+
 #include <libmemcached/memcached.h>
+#include <libmemcached/util.h>
 
 #include "vrt.h"
 #include "bin/varnishd/cache.h"
 
 #include "vcc_if.h"
 
-/* A word about memory management
- *
- * In this VMOD, the per-VCL data is the 'memcached_server_st' structure,
- * accessed by functions with the 'priv vcl' option as priv->priv.
- *
- * Pthreads is used to associated a thread-specific value with each
- * thread, and there we store the 'memcached_st' structure. The
- * memcached_free function is registered as the destructor.
- **/
+#include <string.h>
+#include <time.h>
 
-/** Initialize this module and thread-local data **/
 
-typedef void (*thread_destructor)(void *);
+#define POOL_MAX_CONN_STR     "40"
+#define POOL_MAX_CONN_PREFIX  "--POOL-MAX="
+#define POOL_MAX_CONN_PARAM   " " POOL_MAX_CONN_PREFIX POOL_MAX_CONN_STR
+#define POOL_TIMEOUT_MSEC     3000
+#define POOL_ERROR_INT        -1
+#define POOL_ERROR_STRING     NULL
 
-static pthread_once_t thread_once = PTHREAD_ONCE_INIT;
-static pthread_key_t thread_key;
 
-static void
-make_key()
+typedef struct
 {
-	pthread_key_create(&thread_key, (thread_destructor)memcached_free);
+	memcached_pool_st  *pool;
+	long                pool_timeout_msec;
+	int                 error_int;
+	char               *error_str;
+	char                error_str_value[128];
+}
+vmod_mc_vcl_settings;
+
+
+static void free_mc_vcl_settings(void *data)
+{
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)data;
+
+	memcached_pool_destroy(settings->pool);
+
+	free(settings);
 }
 
-memcached_st *
-get_memcached(void *server_list)
+int init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
 {
-	memcached_st *mc = pthread_getspecific(thread_key);
-	if (!mc) {
-#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX > 0x00049000
-		if (strstr(server_list, "--SERVER")) {
-			mc = memcached(server_list, strlen(server_list));
-		} else {
-#endif
-			memcached_server_st *servers =
-			    memcached_servers_parse(server_list);
-			mc = memcached_create(NULL);
-			memcached_server_push(mc,
-			    (memcached_server_st *)servers);
-			memcached_server_list_free(servers);
-#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX > 0x00049000
-		}
-#endif
+	vmod_mc_vcl_settings *settings;
 
-		if (mc == NULL) VSL(SLT_VCL_Log, 0,
-		    "ERROR: Allocation failure on memcached context.");
-		pthread_setspecific(thread_key, mc);
+	settings=calloc(1, sizeof(vmod_mc_vcl_settings));
+
+	AN(settings);
+
+	settings->pool_timeout_msec = POOL_TIMEOUT_MSEC;
+	settings->error_int = POOL_ERROR_INT;
+	settings->error_str = POOL_ERROR_STRING;
+
+	priv->priv=settings;
+	priv->free=free_mc_vcl_settings;
+
+	return 0;
+}
+
+static memcached_st *get_memcached(struct sess *sp, vmod_mc_vcl_settings *settings)
+{
+	memcached_return_t rc;
+	memcached_st *mc;
+	struct timespec wait;
+
+	AN(settings->pool);
+
+	wait.tv_nsec = 1000 * 1000 * (settings->pool_timeout_msec % 1000);
+	wait.tv_sec = settings->pool_timeout_msec / 1000;
+
+	mc = memcached_pool_fetch(settings->pool, &wait, &rc);
+
+	if(rc == MEMCACHED_SUCCESS)
+	{
+		return mc;
 	}
-	return (mc);
+
+	return NULL;
 }
 
-int
-init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
+static void release_memcached(struct sess *sp, vmod_mc_vcl_settings *settings, memcached_st *mc)
 {
-	(void)conf;
-
-	pthread_once(&thread_once, make_key);
-
-	return (0);
+	memcached_pool_release(settings->pool, mc);
 }
 
-/** The following may ONLY be called from VCL_init **/
-
-void
-vmod_servers(struct sess *sp, struct vmod_priv *priv, const char *config)
+void vmod_servers(struct sess *sp, struct vmod_priv *priv, const char *config)
 {
-	(void)sp;
+	char error_buf[256];
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
 
-	priv->priv = (char *)config;
+	AZ(settings->pool);
+
+	if(strcasestr(config, POOL_MAX_CONN_PREFIX))
+	{
+		settings->pool = memcached_pool(config, strlen(config));
+
+		VSL(SLT_Debug, 0, "memcached pool config '%s'", config);
+	}
+	else
+	{
+		size_t pool_len = strlen(config) + strlen(POOL_MAX_CONN_PARAM);
+		char *pool_str = malloc(pool_len + 1);
+
+		strcpy(pool_str, config);
+		strcat(pool_str, POOL_MAX_CONN_PARAM);
+
+		settings->pool = memcached_pool(pool_str, pool_len);
+
+		VSL(SLT_Debug, 0, "memcached pool config '%s'", pool_str);
+
+		free(pool_str);
+	}
+
+	if(!settings->pool)
+	{
+		libmemcached_check_configuration(config, strlen(config), error_buf, sizeof(error_buf));
+		VSL(SLT_Error, 0, "memcached servers() error");
+		VSL(SLT_Error, 0, "%s", error_buf);
+		AN(settings->pool);
+	}
 }
 
-/** The following may be called after 'memcached.servers(...)' **/
-
-void
-vmod_set(struct sess *sp, struct vmod_priv *priv, const char *key, const char *value, int expiration, int flags)
+void vmod_error_string(struct sess *sp, struct vmod_priv *priv, const char *string)
 {
-	memcached_st *mc = get_memcached(priv->priv);
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
 
-	(void)sp;
+	strncpy(settings->error_str_value, string, sizeof(settings->error_str_value));
+	settings->error_str_value[sizeof(settings->error_str_value) - 1] = '\0';
 
-	if (mc)
-		memcached_set(mc, key, strlen(key), value, strlen(value),
-		    expiration, flags);
+	settings->error_str = settings->error_str_value;
 }
 
-const char *
-vmod_get(struct sess *sp, struct vmod_priv *priv, const char *key)
+void vmod_pool_timeout_msec(struct sess *sp, struct vmod_priv *priv, int timeout)
+{
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
+
+	settings->pool_timeout_msec = timeout;
+}
+
+void vmod_set(struct sess *sp, struct vmod_priv *priv, const char *key,
+	const char *value, int expiration, int flags)
+{
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
+	memcached_st *mc = get_memcached(sp, settings);
+
+	if(mc)
+	{
+		memcached_set(mc, key, strlen(key), value, strlen(value), expiration, flags);
+		release_memcached(sp, settings, mc);
+	}
+}
+
+const char *vmod_get(struct sess *sp, struct vmod_priv *priv, const char *key)
 {
 	size_t len;
 	uint32_t flags;
 	memcached_return rc;
-	memcached_st *mc = get_memcached(priv->priv);
 	char *p, *value;
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
+	memcached_st *mc = get_memcached(sp, settings);
 
 	if (!mc)
-		return (NULL);
+	{
+		return settings->error_str;
+	}
 
 	value = memcached_get(mc, key, strlen(key), &len, &flags, &rc);
-	if (!value)
-		return (NULL);
 
-	p = WS_Dup(sp->ws, value);
+	release_memcached(sp, settings, mc);
+
+	if(rc || !value)
+	{
+		return settings->error_str;
+	}
+
+        p = WS_Dup(sp->ws, value);
+
 	free(value);
 
-	return (p);
+	return p;
 }
 
-int
-vmod_incr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
+int vmod_incr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
 {
+	memcached_return_t rc;
 	uint64_t value = 0;
-	memcached_st *mc = get_memcached(priv->priv);
-
-	(void)sp;
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
+	memcached_st *mc = get_memcached(sp, settings);
 
 	if (!mc)
-		return (0);
+	{
+		return settings->error_int;
+	}
 
 	memcached_increment(mc, key, strlen(key), offset, &value);
 
-	return ((int)value);
+	rc = memcached_last_error(mc);
+
+	release_memcached(sp, settings, mc);
+
+	if(rc)
+	{
+		return settings->error_int;
+	}
+
+	return (int)value;
 }
 
-int
-vmod_decr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
+int vmod_decr(struct sess *sp, struct vmod_priv *priv, const char *key, int offset)
 {
+	memcached_return_t rc;
 	uint64_t value = 0;
-
-	memcached_st *mc = get_memcached(priv->priv);
-	(void)sp;
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
+	memcached_st *mc = get_memcached(sp, settings);
 
 	if (!mc)
-		return (0);
+	{
+		return settings->error_int;
+	}
 
 	memcached_decrement(mc, key, strlen(key), offset, &value);
 
-	return ((int)value);
+	rc = memcached_last_error(mc);
+
+	release_memcached(sp, settings, mc);
+
+	if(rc)
+	{
+		return settings->error_int;
+	}
+
+	return (int)value;
 }
 
-int
-vmod_incr_set(struct sess *sp, struct vmod_priv *priv, const char *key,
-    int offset, int initial, int expiration)
+int vmod_incr_set(struct sess *sp, struct vmod_priv *priv,
+	const char *key, int offset, int initial, int expiration)
 {
+	memcached_return_t rc;
 	uint64_t value = 0;
-
-#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX < 0x00049000
-	VSL(SLT_VCL_Log, 0, "memcached: Function unsupported by libmemcached");
-	return(0);
-#endif
-
-	memcached_st *mc = get_memcached(priv->priv);
-
-	(void)sp;
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
+	memcached_st *mc = get_memcached(sp, settings);
 
 	if (!mc)
-		return (0);
+	{
+		return settings->error_int;
+	}
 
 	memcached_increment_with_initial(mc, key, strlen(key), offset,
-	    initial, expiration, &value);
+		initial, expiration, &value);
 
-	return ((int)value);
+	rc = memcached_last_error(mc);
+
+	release_memcached(sp, settings, mc);
+
+	if(rc)
+	{
+		return settings->error_int;
+	}
+
+	return (int)value;
 }
 
-int
-vmod_decr_set(struct sess *sp, struct vmod_priv *priv, const char *key,
-    int offset, int initial, int expiration)
+int vmod_decr_set(struct sess *sp, struct vmod_priv *priv,
+	const char *key, int offset, int initial, int expiration)
 {
+	memcached_return_t rc;
 	uint64_t value = 0;
-
-#if defined(LIBMEMCACHED_VERSION_HEX) && LIBMEMCACHED_VERSION_HEX < 0x00049000
-	VSL(SLT_VCL_Log, 0, "memcached: Function unsupported by libmemcached");
-	return(0);
-#endif
-
-	memcached_st *mc = get_memcached(priv->priv);
-
-	(void)sp;
+	vmod_mc_vcl_settings *settings = (vmod_mc_vcl_settings*)priv->priv;
+	memcached_st *mc = get_memcached(sp, settings);
 
 	if (!mc)
-		return (0);
+	{
+		return settings->error_int;
+	}
 
 	memcached_decrement_with_initial(mc, key, strlen(key), offset,
-	    initial, expiration, &value);
+		initial, expiration, &value);
 
-	return ((int)value);
+	rc = memcached_last_error(mc);
+
+	release_memcached(sp, settings, mc);
+
+	if(rc)
+	{
+		return settings->error_int;
+	}
+
+	return (int)value;
 }

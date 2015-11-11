@@ -1,4 +1,4 @@
-varnishtest "Test incr and decr with --SERVER"
+varnishtest "Test invalid incr"
 
 server s1 {
 	rxreq
@@ -13,15 +13,12 @@ varnish v1 -vcl+backend {
 	}
 
 	sub vcl_deliver {
-		memcached.set("test02", "1", 0, 0);
-		set resp.http.high = memcached.incr("test02", 3);
-		set resp.http.low = memcached.decr("test02", 2);
+		set resp.http.count = memcached.incr("test04", 3);
 	}
 } -start
 
 client c1 {
 	txreq -url "/"
 	rxresp
-	expect resp.http.high == "4"
-	expect resp.http.low == "2"
+	expect resp.http.count == "-1"
 } -run
