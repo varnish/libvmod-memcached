@@ -9,7 +9,7 @@ varnish v1 -vcl+backend {
 	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
 
 	sub vcl_init {
-		memcached.servers("--SERVER=xxxbadhost123:2 --CONNECT-TIMEOUT=50");
+		memcached.servers("--SERVER=localhost:1 --CONNECT-TIMEOUT=50");
 		memcached.error_string("_error_");
 	}
 
