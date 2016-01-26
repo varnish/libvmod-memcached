@@ -3,6 +3,7 @@
 #include <libmemcached/memcached.h>
 #include <libmemcached/util.h>
 
+#include "vcl.h"
 #include "vrt.h"
 #include "cache/cache.h"
 
@@ -40,20 +41,23 @@ static void free_mc_vcl_settings(void *data)
 	free(settings);
 }
 
-int init_function(struct vmod_priv *priv, const struct VCL_conf *conf)
+int init_function(const struct vrt_ctx *ctx, struct vmod_priv *priv, enum vcl_event_e e)
 {
 	vmod_mc_vcl_settings *settings;
 
-	settings=calloc(1, sizeof(vmod_mc_vcl_settings));
+	if (e == VCL_EVENT_LOAD)
+	{
+		settings=calloc(1, sizeof(vmod_mc_vcl_settings));
 
-	AN(settings);
+		AN(settings);
 
-	settings->pool_timeout_msec = POOL_TIMEOUT_MSEC;
-	settings->error_int = POOL_ERROR_INT;
-	settings->error_str = POOL_ERROR_STRING;
+		settings->pool_timeout_msec = POOL_TIMEOUT_MSEC;
+		settings->error_int = POOL_ERROR_INT;
+		settings->error_str = POOL_ERROR_STRING;
 
-	priv->priv=settings;
-	priv->free=free_mc_vcl_settings;
+		priv->priv=settings;
+		priv->free=free_mc_vcl_settings;
+	}
 
 	return 0;
 }
