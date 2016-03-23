@@ -9,8 +9,8 @@ Varnish Memcached Module
 :Author: Aaron Stone
 :Author: Federico G. Schwindt
 :Author: Reza Naghibi
-:Date: 2015-04-24
-:Version: 0.3
+:Date: 2016-03-23
+:Version: 1.0.0
 :Manual section: 3
 
 SYNOPSIS
@@ -21,7 +21,7 @@ import memcached;
 DESCRIPTION
 ===========
 
-Varnish vmod using libmemcached to access memcached servers.
+Varnish module to access memcached servers from VCL.
 
 FUNCTIONS
 =========
@@ -261,31 +261,4 @@ SEE ALSO
 
 * http://memcached.org/
 * http://libmemcached.org/
-
-HISTORY
-=======
-
-0.3
-
-This VMOD was refactored with the following goals:
-
-* Remove pthread_specific functionality since its not vcl.reload safe
-* Change one connection per thread to a shared connection pool
-* Better error detection
-
-0.1
-
-The first revision of this document sketches out a rough plan for approaching a
-general purpose memcached client module for Varnish. More features are sure to
-be added as we go along.
-
-This manual page is based on the template man page from libvmod-example.
-
-COPYRIGHT
-=========
-
-* Copyright (c) 2012 Aaron Stone
-* Copyright (c) 2014-2015 Varnish Software
-* See COPYING for copyright holders and descriptions.
-* See LICENSE for full copyright terms.
 

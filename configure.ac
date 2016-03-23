@@ -1,6 +1,6 @@
 AC_PREREQ(2.64)
-AC_COPYRIGHT([Copyright (c) 2011-2015 Varnish Software AS])
-AC_INIT([libvmod-memcached], [trunk])
+AC_COPYRIGHT([Copyright (c) 2011-2016 Varnish Software])
+AC_INIT([libvmod-memcached], [1.0.0])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(src/vmod_memcached.vcc)
 AC_CONFIG_HEADERS(config.h)
