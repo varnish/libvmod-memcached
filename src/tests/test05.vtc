@@ -1,5 +1,12 @@
 varnishtest "Test incr_set and decr_set"
 
+process p1 "exec memcached -p -1 -U 0" -start
+
+shell {
+	${vmod_topbuild}/src/tests/gen-vcl.sh ${p1_pid} \
+		"--SERVER=@SERVER@ --BINARY-PROTOCOL"
+}
+
 server s1 {
 	rxreq
 	txresp
@@ -9,7 +16,7 @@ varnish v1 -vcl+backend {
 	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
 
 	sub vcl_init {
-		memcached.servers("--SERVER=localhost:${memcached_port} --BINARY-PROTOCOL");
+		include "${tmpdir}/memcached.servers.vcl";
 	}
 
 	sub vcl_deliver {
