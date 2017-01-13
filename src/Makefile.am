@@ -30,6 +30,7 @@ check: $(VMOD_TESTS)
 EXTRA_DIST = \
 	vmod_memcached.vcc \
 	tests/runner \
+	tests/gen-vcl.sh \
 	$(VMOD_TESTS)
 
 CLEANFILES = $(builddir)/vcc_if.c \
