@@ -6,13 +6,15 @@ License: BSD
 Group: System Environment/Daemons
 Source0: libvmod-memcached.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires: varnish >= 4.0.2
-BuildRequires: make
-BuildRequires: python-docutils
-BuildRequires: varnish >= 4.0.2
-BuildRequires: varnish-libs-devel >= 4.0.2
-BuildRequires: memcached
+
+Requires: varnish >= 4.1
+
 BuildRequires: libmemcached-devel > 0.53
+BuildRequires: lsof
+BuildRequires: memcached
+BuildRequires: python-docutils
+BuildRequires: varnish >= 4.1
+BuildRequires: varnish-libs-devel >= 4.1
 
 %description
 Memcached VMOD
