@@ -41,7 +41,8 @@ free_mc_vcl_settings(void *data)
 }
 
 int
-init_function(const struct vrt_ctx *ctx, struct vmod_priv *priv, enum vcl_event_e e)
+init_function(const struct vrt_ctx *ctx, struct vmod_priv *priv,
+    enum vcl_event_e e)
 {
 	struct vmod_mc_vcl_settings *settings;
 
@@ -83,7 +84,8 @@ get_memcached(const struct vrt_ctx *ctx, struct vmod_mc_vcl_settings *settings)
 }
 
 static void
-release_memcached(const struct vrt_ctx *ctx, struct vmod_mc_vcl_settings *settings, memcached_st *mc)
+release_memcached(const struct vrt_ctx *ctx,
+    struct vmod_mc_vcl_settings *settings, memcached_st *mc)
 {
 	CHECK_OBJ_NOTNULL(settings, VMOD_MC_SETTINGS_MAGIC);
 	AN(mc);
@@ -92,7 +94,8 @@ release_memcached(const struct vrt_ctx *ctx, struct vmod_mc_vcl_settings *settin
 }
 
 VCL_VOID
-vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING config)
+vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv,
+    VCL_STRING config)
 {
 	char error_buf[256];
 	struct vmod_mc_vcl_settings *settings;
@@ -118,7 +121,8 @@ vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING confi
 	}
 
 	if (!settings->pool) {
-		libmemcached_check_configuration(config, strlen(config), error_buf, sizeof(error_buf));
+		libmemcached_check_configuration(config, strlen(config),
+		    error_buf, sizeof(error_buf));
 		VSL(SLT_Error, 0, "memcached servers() error");
 		VSL(SLT_Error, 0, "%s", error_buf);
 		AN(settings->pool);
@@ -126,19 +130,22 @@ vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING confi
 }
 
 VCL_VOID
-vmod_error_string(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING string)
+vmod_error_string(const struct vrt_ctx *ctx, struct vmod_priv *priv,
+    VCL_STRING string)
 {
 	struct vmod_mc_vcl_settings *settings;
 	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
 
-	strncpy(settings->error_str_value, string, sizeof(settings->error_str_value));
+	strncpy(settings->error_str_value, string,
+	    sizeof(settings->error_str_value));
 	settings->error_str_value[sizeof(settings->error_str_value) - 1] = '\0';
 
 	settings->error_str = settings->error_str_value;
 }
 
 VCL_VOID
-vmod_pool_timeout_msec(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_INT timeout)
+vmod_pool_timeout_msec(const struct vrt_ctx *ctx, struct vmod_priv *priv,
+    VCL_INT timeout)
 {
 	struct vmod_mc_vcl_settings *settings;
 	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
@@ -159,13 +166,16 @@ vmod_set(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
 	mc = get_memcached(ctx, settings);
 
 	if (mc) {
-		rc = memcached_set(mc, key, strlen(key), value, strlen(value), expiration, flags);
+		rc = memcached_set(mc, key, strlen(key), value, strlen(value),
+		    expiration, flags);
 		release_memcached(ctx, settings, mc);
 
 		if (rc != MEMCACHED_SUCCESS) {
-			VSLb(ctx->vsl, SLT_Error, "memcached set() error: %s", memcached_strerror(mc, rc));
+			VSLb(ctx->vsl, SLT_Error, "memcached set() error: %s",
+			    memcached_strerror(mc, rc));
 			if (memcached_last_error_message(mc)) {
-				VSLb(ctx->vsl, SLT_Error, "%s", memcached_last_error_message(mc));
+				VSLb(ctx->vsl, SLT_Error, "%s",
+				    memcached_last_error_message(mc));
 			}
 		}
 	}
@@ -194,9 +204,11 @@ vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 	release_memcached(ctx, settings, mc);
 
 	if (rc != MEMCACHED_SUCCESS) {
-		VSLb(ctx->vsl, SLT_Error, "memcached get() error: %s", memcached_strerror(mc, rc));
+		VSLb(ctx->vsl, SLT_Error, "memcached get() error: %s",
+		    memcached_strerror(mc, rc));
 		if (memcached_last_error_message(mc)) {
-			VSLb(ctx->vsl, SLT_Error, "%s", memcached_last_error_message(mc));
+			VSLb(ctx->vsl, SLT_Error, "%s",
+			    memcached_last_error_message(mc));
 		}
 
 		return (settings->error_str);
@@ -214,7 +226,8 @@ vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 }
 
 VCL_INT
-vmod_incr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL_INT offset)
+vmod_incr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
+    VCL_INT offset)
 {
 	memcached_return_t rc;
 	uint64_t value = 0;
@@ -234,9 +247,11 @@ vmod_incr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL
 	release_memcached(ctx, settings, mc);
 
 	if (rc != MEMCACHED_SUCCESS) {
-		VSLb(ctx->vsl, SLT_Error, "memcached increment() error: %s", memcached_strerror(mc, rc));
+		VSLb(ctx->vsl, SLT_Error, "memcached increment() error: %s",
+		    memcached_strerror(mc, rc));
 		if (memcached_last_error_message(mc)) {
-			VSLb(ctx->vsl, SLT_Error, "%s", memcached_last_error_message(mc));
+			VSLb(ctx->vsl, SLT_Error, "%s",
+			    memcached_last_error_message(mc));
 		}
 
 		return (settings->error_int);
@@ -246,7 +261,8 @@ vmod_incr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL
 }
 
 VCL_INT
-vmod_decr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL_INT offset)
+vmod_decr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
+    VCL_INT offset)
 {
 	memcached_return_t rc;
 	uint64_t value = 0;
@@ -266,9 +282,11 @@ vmod_decr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL
 	release_memcached(ctx, settings, mc);
 
 	if (rc != MEMCACHED_SUCCESS) {
-		VSLb(ctx->vsl, SLT_Error, "memcached decrement() error: %s", memcached_strerror(mc, rc));
+		VSLb(ctx->vsl, SLT_Error, "memcached decrement() error: %s",
+		    memcached_strerror(mc, rc));
 		if (memcached_last_error_message(mc)) {
-			VSLb(ctx->vsl, SLT_Error, "%s", memcached_last_error_message(mc));
+			VSLb(ctx->vsl, SLT_Error, "%s",
+			    memcached_last_error_message(mc));
 		}
 
 		return (settings->error_int);
@@ -300,9 +318,12 @@ vmod_incr_set(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 	release_memcached(ctx, settings, mc);
 
 	if (rc != MEMCACHED_SUCCESS) {
-		VSLb(ctx->vsl, SLT_Error, "memcached increment_with_initial() error: %s", memcached_strerror(mc, rc));
+		VSLb(ctx->vsl, SLT_Error,
+		    "memcached increment_with_initial() error: %s",
+		    memcached_strerror(mc, rc));
 		if (memcached_last_error_message(mc)) {
-			VSLb(ctx->vsl, SLT_Error, "%s", memcached_last_error_message(mc));
+			VSLb(ctx->vsl, SLT_Error, "%s",
+			    memcached_last_error_message(mc));
 		}
 
 		return (settings->error_int);
@@ -334,9 +355,12 @@ vmod_decr_set(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 	release_memcached(ctx, settings, mc);
 
 	if (rc != MEMCACHED_SUCCESS) {
-		VSLb(ctx->vsl, SLT_Error, "memcached decrement_with_initial() error: %s", memcached_strerror(mc, rc));
+		VSLb(ctx->vsl, SLT_Error,
+		    "memcached decrement_with_initial() error: %s",
+		    memcached_strerror(mc, rc));
 		if (memcached_last_error_message(mc)) {
-			VSLb(ctx->vsl, SLT_Error, "%s", memcached_last_error_message(mc));
+			VSLb(ctx->vsl, SLT_Error, "%s",
+			    memcached_last_error_message(mc));
 		}
 
 		return (settings->error_int);
