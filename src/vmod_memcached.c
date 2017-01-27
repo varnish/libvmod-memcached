@@ -21,6 +21,8 @@
 #define POOL_ERROR_STRING	NULL
 
 struct vmod_mc_vcl_settings {
+	unsigned		magic;
+#define VMOD_MC_SETTINGS_MAGIC	0x171a35ca
 	memcached_pool_st	*pool;
 	long			pool_timeout_msec;
 	int			error_int;
@@ -31,11 +33,11 @@ struct vmod_mc_vcl_settings {
 static void
 free_mc_vcl_settings(void *data)
 {
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)data;
+	struct vmod_mc_vcl_settings *settings;
+	CAST_OBJ_NOTNULL(settings, data, VMOD_MC_SETTINGS_MAGIC);
 
 	memcached_pool_destroy(settings->pool);
-
-	free(settings);
+	FREE_OBJ(settings);
 }
 
 int
@@ -44,8 +46,7 @@ init_function(const struct vrt_ctx *ctx, struct vmod_priv *priv, enum vcl_event_
 	struct vmod_mc_vcl_settings *settings;
 
 	if (e == VCL_EVENT_LOAD) {
-		settings = calloc(1, sizeof(struct vmod_mc_vcl_settings));
-
+		ALLOC_OBJ(settings, VMOD_MC_SETTINGS_MAGIC);
 		AN(settings);
 
 		settings->pool_timeout_msec = POOL_TIMEOUT_MSEC;
@@ -66,6 +67,7 @@ get_memcached(const struct vrt_ctx *ctx, struct vmod_mc_vcl_settings *settings)
 	memcached_st *mc;
 	struct timespec wait;
 
+	CHECK_OBJ_NOTNULL(settings, VMOD_MC_SETTINGS_MAGIC);
 	AN(settings->pool);
 
 	wait.tv_nsec = 1000 * 1000 * (settings->pool_timeout_msec % 1000);
@@ -83,6 +85,9 @@ get_memcached(const struct vrt_ctx *ctx, struct vmod_mc_vcl_settings *settings)
 static void
 release_memcached(const struct vrt_ctx *ctx, struct vmod_mc_vcl_settings *settings, memcached_st *mc)
 {
+	CHECK_OBJ_NOTNULL(settings, VMOD_MC_SETTINGS_MAGIC);
+	AN(mc);
+
 	memcached_pool_release(settings->pool, mc);
 }
 
@@ -90,13 +95,13 @@ VCL_VOID
 vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING config)
 {
 	char error_buf[256];
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)priv->priv;
+	struct vmod_mc_vcl_settings *settings;
 
+	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
 	AZ(settings->pool);
 
 	if (strcasestr(config, POOL_MAX_CONN_PREFIX)) {
 		settings->pool = memcached_pool(config, strlen(config));
-
 		VSL(SLT_Debug, 0, "memcached pool config '%s'", config);
 	} else {
 		size_t pool_len = strlen(config) + strlen(POOL_MAX_CONN_PARAM);
@@ -123,7 +128,8 @@ vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING confi
 VCL_VOID
 vmod_error_string(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING string)
 {
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)priv->priv;
+	struct vmod_mc_vcl_settings *settings;
+	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
 
 	strncpy(settings->error_str_value, string, sizeof(settings->error_str_value));
 	settings->error_str_value[sizeof(settings->error_str_value) - 1] = '\0';
@@ -134,7 +140,8 @@ vmod_error_string(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING 
 VCL_VOID
 vmod_pool_timeout_msec(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_INT timeout)
 {
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)priv->priv;
+	struct vmod_mc_vcl_settings *settings;
+	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
 
 	settings->pool_timeout_msec = timeout;
 }
@@ -143,9 +150,13 @@ VCL_VOID
 vmod_set(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
 	VCL_STRING value, VCL_INT expiration, VCL_INT flags)
 {
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)priv->priv;
-	memcached_st *mc = get_memcached(ctx, settings);
+	struct vmod_mc_vcl_settings *settings;
+	memcached_st *mc;
 	memcached_return_t rc;
+
+	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
+	mc = get_memcached(ctx, settings);
 
 	if (mc) {
 		rc = memcached_set(mc, key, strlen(key), value, strlen(value), expiration, flags);
@@ -167,8 +178,12 @@ vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 	uint32_t flags;
 	memcached_return rc;
 	char *p, *value;
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)priv->priv;
-	memcached_st *mc = get_memcached(ctx, settings);
+	struct vmod_mc_vcl_settings *settings;
+	memcached_st *mc;
+
+	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
+	mc = get_memcached(ctx, settings);
 
 	if (!mc) {
 		return (settings->error_str);
@@ -203,8 +218,12 @@ vmod_incr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL
 {
 	memcached_return_t rc;
 	uint64_t value = 0;
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)priv->priv;
-	memcached_st *mc = get_memcached(ctx, settings);
+	struct vmod_mc_vcl_settings *settings;
+	memcached_st *mc;
+
+	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
+	mc = get_memcached(ctx, settings);
 
 	if (!mc) {
 		return (settings->error_int);
@@ -231,8 +250,12 @@ vmod_decr(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key, VCL
 {
 	memcached_return_t rc;
 	uint64_t value = 0;
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)priv->priv;
-	memcached_st *mc = get_memcached(ctx, settings);
+	struct vmod_mc_vcl_settings *settings;
+	memcached_st *mc;
+
+	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
+	mc = get_memcached(ctx, settings);
 
 	if (!mc) {
 		return (settings->error_int);
@@ -260,8 +283,12 @@ vmod_incr_set(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 {
 	memcached_return_t rc;
 	uint64_t value = 0;
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)priv->priv;
-	memcached_st *mc = get_memcached(ctx, settings);
+	struct vmod_mc_vcl_settings *settings;
+	memcached_st *mc;
+
+	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
+	mc = get_memcached(ctx, settings);
 
 	if (!mc) {
 		return (settings->error_int);
@@ -290,8 +317,12 @@ vmod_decr_set(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 {
 	memcached_return_t rc;
 	uint64_t value = 0;
-	struct vmod_mc_vcl_settings *settings = (struct vmod_mc_vcl_settings*)priv->priv;
-	memcached_st *mc = get_memcached(ctx, settings);
+	struct vmod_mc_vcl_settings *settings;
+	memcached_st *mc;
+
+	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	CAST_OBJ_NOTNULL(settings, priv->priv, VMOD_MC_SETTINGS_MAGIC);
+	mc = get_memcached(ctx, settings);
 
 	if (!mc) {
 		return (settings->error_int);
