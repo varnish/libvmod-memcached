@@ -1,6 +1,6 @@
 varnishtest "Test incr_set and decr_set"
 
-process p1 "exec memcached -p -1 -U 0" -start
+process p1 "exec memcached -u memcached -p -1 -U 0" -start
 
 shell {
 	${vmod_topbuild}/src/tests/gen-vcl.sh ${p1_pid} \
