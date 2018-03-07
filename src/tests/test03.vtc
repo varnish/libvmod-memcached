@@ -2,7 +2,7 @@ varnishtest "Test invalid get with error_string"
 
 process p1 "exec memcached -p -1 -U 0" -start
 
-shell {${vmod_topbuild}/src/tests/gen-vcl.sh ${p1_pid} "--SERVER=@SERVER@"}
+shell {${vmod_topsrc}/src/tests/gen-vcl.sh ${p1_pid} "--SERVER=@SERVER@"}
 
 server s1 {
 	rxreq
