@@ -1,5 +1,7 @@
 varnishtest "Test incr_set and decr_set"
 
+feature cmd memcached -V
+
 process p1 "exec memcached -p -1 -U 0" -start
 
 shell {

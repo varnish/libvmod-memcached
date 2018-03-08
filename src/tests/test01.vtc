@@ -1,5 +1,7 @@
 varnishtest "Test set and get"
 
+feature cmd memcached -V
+
 process p1 "exec memcached -p -1 -U 0" -start
 
 shell {${vmod_topsrc}/src/tests/gen-vcl.sh ${p1_pid} "--SERVER=@SERVER@"}

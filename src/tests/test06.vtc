@@ -1,5 +1,7 @@
 varnishtest "Test crash on free"
 
+feature cmd memcached -V
+
 server s1 {
 	rxreq
 	txresp

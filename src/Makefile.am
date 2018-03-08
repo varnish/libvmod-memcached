@@ -26,7 +26,7 @@ $(top_srcdir)/src/tests/*.vtc:
 	@VARNISHTEST@ -Dvarnishd=@VARNISHD@ \
 		-Dvmod_topsrc=$(abs_top_srcdir) \
 		-Dvmod_topbuild=$(abs_top_builddir) \
-		$@
+		$@ || test $$? -eq 77
 
 check: $(VMOD_TESTS)
 
