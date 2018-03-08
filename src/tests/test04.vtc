@@ -1,6 +1,6 @@
 varnishtest "Test invalid incr"
 
-feature cmd memcached -V
+feature cmd "memcached -V"
 
 process p1 "exec memcached -p -1 -U 0" -start
 
