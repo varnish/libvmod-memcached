@@ -1,17 +1,24 @@
 #define _GNU_SOURCE
 
+#include "config.h"
+
 #include <libmemcached/memcached.h>
 #include <libmemcached/util.h>
-
-#include "vcl.h"
-#include "vrt.h"
-#include "cache/cache.h"
-
-#include "vcc_if.h"
-
 #include <string.h>
 #include <time.h>
 
+#include <cache/cache.h>
+#include <vcl.h>
+
+#ifndef VRT_H_INCLUDED
+#  include <vrt.h>
+#endif
+
+#ifndef VDEF_H_INCLUDED
+#  include <vdef.h>
+#endif
+
+#include "vcc_if.h"
 
 #define POOL_MAX_CONN_STR	"40"
 #define POOL_MAX_CONN_PREFIX	"--POOL-MAX="

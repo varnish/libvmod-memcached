@@ -23,13 +23,15 @@ VMOD_TESTS = $(top_srcdir)/src/tests/*.vtc
 .PHONY: $(VMOD_TESTS)
 
 $(top_srcdir)/src/tests/*.vtc:
-	@VARNISHTEST@ -Dvarnishd=@VARNISHD@ -Dvmod_topbuild=$(abs_top_builddir) $@
+	@VARNISHTEST@ -Dvarnishd=@VARNISHD@ \
+		-Dvmod_topsrc=$(abs_top_srcdir) \
+		-Dvmod_topbuild=$(abs_top_builddir) \
+		$@ || test $$? -eq 77
 
 check: $(VMOD_TESTS)
 
 EXTRA_DIST = \
 	vmod_memcached.vcc \
-	tests/runner \
 	tests/gen-vcl.sh \
 	$(VMOD_TESTS)
 

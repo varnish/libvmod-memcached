@@ -1,5 +1,13 @@
 This is a running log of changes to libvmod-memcached.
 
+libvmod-memcached 1.0.1 (2017-03-07)
+------------------------------------
+
+ * Minor fixes.
+ * Update RPM dependencies.
+
+This release was tested with Varnish Cache 4.1.9 and trunk (2018-03-07)
+
 libvmod-memcached 1.0.0 (2016-03-23)
 ------------------------------------
 

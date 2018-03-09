@@ -10,7 +10,7 @@ Varnish Memcached Module
 :Author: Federico G. Schwindt
 :Author: Reza Naghibi
 :Date: 2016-03-23
-:Version: 1.0.0
+:Version: 1.0.1
 :Manual section: 3
 
 SYNOPSIS
