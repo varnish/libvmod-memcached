@@ -1,0 +1,31 @@
+varnishtest "Test servers"
+
+# bad server with port 1
+shell {${vmod_topsrc}/src/tests/gen-vcl.sh 1 "--SERVER=@SERVER@"}
+
+server s1 {
+	rxreq
+	txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import memcached from "${vmod_topbuild}/src/.libs/libvmod_memcached.so";
+
+	sub vcl_init {
+		include "${tmpdir}/memcached.servers.vcl";
+	}
+
+	sub vcl_deliver {
+		memcached.set("test01", "Hello, World", 0, 0);
+	}
+} -start
+
+logexpect l1 -v v1 {
+	expect * * Error  "Could not connect to memcached"
+} -start
+
+client c1 {
+	txreq -url "/"
+	rxresp
+} -run
+
