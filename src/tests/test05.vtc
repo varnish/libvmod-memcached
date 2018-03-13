@@ -2,7 +2,7 @@ varnishtest "Test incr_set and decr_set"
 
 feature cmd "command -v memcached >/dev/null"
 
-process p1 "exec memcached -p -1 -U 0" -start
+process p1 "exec memcached -u nobody -p -1 -U 0" -start
 
 shell {
 	${vmod_topsrc}/src/tests/gen-vcl.sh ${p1_pid} \
