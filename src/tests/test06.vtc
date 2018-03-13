@@ -1,6 +1,6 @@
 varnishtest "Test crash on free"
 
-feature cmd "memcached -V"
+feature cmd "command -v memcached >/dev/null"
 
 server s1 {
 	rxreq
