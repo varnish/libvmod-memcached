@@ -76,7 +76,11 @@ get_memcached(const struct vrt_ctx *ctx, struct vmod_mc_vcl_settings *settings)
 	struct timespec wait;
 
 	CHECK_OBJ_NOTNULL(settings, VMOD_MC_SETTINGS_MAGIC);
-	AN(settings->pool);
+	if (!settings->pool) {
+		VSLb(ctx->vsl, SLT_Error, "Could not connect to memcached.");
+		VRT_handling(ctx, VCL_RET_FAIL);
+		return (NULL);
+	}
 
 	wait.tv_nsec = 1000 * 1000 * (settings->pool_timeout_msec % 1000);
 	wait.tv_sec = settings->pool_timeout_msec / 1000;
@@ -132,7 +136,6 @@ vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 		    error_buf, sizeof(error_buf));
 		VSL(SLT_Error, 0, "memcached servers() error");
 		VSL(SLT_Error, 0, "%s", error_buf);
-		AN(settings->pool);
 	}
 }
 
