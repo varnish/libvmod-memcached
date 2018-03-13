@@ -1,6 +1,6 @@
 varnishtest "Test set and get"
 
-feature cmd "memcached -V"
+feature cmd "command -v memcached >/dev/null"
 
 process p1 "exec memcached -u memcached -p -1 -U 0" -start
 
