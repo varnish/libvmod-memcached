@@ -1,5 +1,5 @@
 $Module memcached 3 Varnish memcached module
-$Event init_function
+$Event event
 $Function VOID servers(PRIV_VCL, STRING)
 $Function VOID error_string(PRIV_VCL, STRING)
 $Function VOID pool_timeout_msec(PRIV_VCL, INT)

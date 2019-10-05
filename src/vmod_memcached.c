@@ -48,7 +48,7 @@ free_mc_vcl_settings(void *data)
 }
 
 int
-init_function(const struct vrt_ctx *ctx, struct vmod_priv *priv,
+vmod_event(const struct vrt_ctx *ctx, struct vmod_priv *priv,
     enum vcl_event_e e)
 {
 	struct vmod_mc_vcl_settings *settings;
