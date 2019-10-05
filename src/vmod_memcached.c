@@ -77,8 +77,7 @@ get_memcached(const struct vrt_ctx *ctx, struct vmod_mc_vcl_settings *settings)
 
 	CHECK_OBJ_NOTNULL(settings, VMOD_MC_SETTINGS_MAGIC);
 	if (!settings->pool) {
-		VSLb(ctx->vsl, SLT_Error, "Could not connect to memcached.");
-		VRT_handling(ctx, VCL_RET_FAIL);
+		VRT_fail(ctx, "Could not connect to memcached.");
 		return (NULL);
 	}
 
