@@ -121,7 +121,7 @@ vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 
 	if (strcasestr(config, POOL_MAX_CONN_PREFIX)) {
 		settings->pool = memcached_pool(config, strlen(config));
-		VSL(SLT_Debug, 0, "memcached pool config '%s'", config);
+		VSL(SLT_Debug, NO_VXID, "memcached pool config '%s'", config);
 	} else {
 		size_t pool_len = strlen(config) + strlen(POOL_MAX_CONN_PARAM);
 		char *pool_str = malloc(pool_len + 1);
@@ -131,7 +131,7 @@ vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 
 		settings->pool = memcached_pool(pool_str, pool_len);
 
-		VSL(SLT_Debug, 0, "memcached pool config '%s'", pool_str);
+		VSL(SLT_Debug, NO_VXID, "memcached pool config '%s'", pool_str);
 
 		free(pool_str);
 	}
@@ -139,8 +139,8 @@ vmod_servers(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 	if (!settings->pool) {
 		libmemcached_check_configuration(config, strlen(config),
 		    error_buf, sizeof(error_buf));
-		VSL(SLT_Error, 0, "memcached servers() error");
-		VSL(SLT_Error, 0, "%s", error_buf);
+		VSL(SLT_Error, NO_VXID, "memcached servers() error");
+		VSL(SLT_Error, NO_VXID, "%s", error_buf);
 	}
 }
 
