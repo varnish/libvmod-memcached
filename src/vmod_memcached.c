@@ -38,7 +38,7 @@ struct vmod_mc_vcl_settings {
 };
 
 static void
-free_mc_vcl_settings(void *data)
+free_mc_vcl_settings(VRT_CTX, void *data)
 {
 	struct vmod_mc_vcl_settings *settings;
 	CAST_OBJ_NOTNULL(settings, data, VMOD_MC_SETTINGS_MAGIC);
@@ -46,6 +46,12 @@ free_mc_vcl_settings(void *data)
 	memcached_pool_destroy(settings->pool);
 	FREE_OBJ(settings);
 }
+
+static const struct vmod_priv_methods priv_vcl_methods[1] = {{
+	.magic = VMOD_PRIV_METHODS_MAGIC,
+	.type = "vmod_memcached_priv_vcl",
+	.fini = free_mc_vcl_settings
+}};
 
 int
 vmod_event(const struct vrt_ctx *ctx, struct vmod_priv *priv,
@@ -62,7 +68,7 @@ vmod_event(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 		settings->error_str = POOL_ERROR_STRING;
 
 		priv->priv = settings;
-		priv->free = free_mc_vcl_settings;
+		priv->methods = priv_vcl_methods;
 	}
 
 	return (0);
