@@ -15,7 +15,9 @@ nodist_libvmod_memcached_la_SOURCES = \
 
 $(libvmod_memcached_la_OBJECTS): vcc_if.h
 
-vcc_if.c vcc_if.h: @VMODTOOL@ $(top_srcdir)/src/vmod_memcached.vcc
+vcc_if.c: vcc_if.h
+
+vcc_if.h: @VMODTOOL@ $(top_srcdir)/src/vmod_memcached.vcc
 	@VMODTOOL@ $(top_srcdir)/src/vmod_memcached.vcc
 
 VMOD_TESTS = $(top_srcdir)/src/tests/*.vtc
